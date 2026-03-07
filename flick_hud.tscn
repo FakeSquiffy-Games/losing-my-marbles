@@ -21,8 +21,10 @@ script = ExtResource("1_1bkei")
 
 [node name="Container" type="Panel" parent="FlickStrength"]
 layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
+offset_left = 601.0
+offset_top = 118.0
+offset_right = 641.0
+offset_bottom = 158.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_1bkei")
 
 [node name="Track" type="ColorRect" parent="FlickStrength/Container"]
@@ -31,6 +33,7 @@ offset_left = 2.0
 offset_top = 2.0
 offset_right = 38.0
 offset_bottom = 40.0
+color = Color(0.18359044, 0.18359044, 0.18359044, 1)
 
 [node name="Lever" type="ColorRect" parent="FlickStrength/Container"]
 layout_mode = 0

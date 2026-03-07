@@ -1,13 +1,12 @@
 extends Control
 
-@export var controller: Node
 var lever_dragging: bool = false
-var lever_start_y: float = 0.0
 var track_height: float = 200.0
-@export var max_power: float = 1.0
-@export var min_pull_threshold: float = 0.05
+var min_pull_threshold: float = 0.05
 var idle_y: float = 0.0
 var wiggling: bool = false
+
+@onready var controller: Node = get_node("/root/Terrain/MarbleController")
 
 func _ready():
 	$Container/Lever.gui_input.connect(_on_lever_input)
@@ -18,9 +17,9 @@ func _ready():
 	$Container.size = $Container/Track.size + Vector2(border_size, border_size)
 
 func _on_lever_input(event):
-	if not controller or not controller.active_marble:
+	if not GameState.active_marble:
 		return
-	if controller.active_marble.linear_velocity.length() > 5:
+	if GameState.active_marble.linear_velocity.length() > 5:
 		return
 	if controller.is_rotating:
 		return
@@ -34,7 +33,7 @@ func _on_lever_input(event):
 				if pull > min_pull_threshold:
 					controller.launch(pull * 3.0)
 				else:
-					controller.active_marble.update_aim_line(0.5, controller.aim_angle)
+					GameState.active_marble.update_aim_line(0.5, controller.aim_angle)
 				wiggling = false
 				$Container/Lever.rotation = 0.0
 				var tween = create_tween()
@@ -48,12 +47,12 @@ func _input(event):
 		var new_y = $Container/Lever.position.y + event.relative.y
 		$Container/Lever.position.y = clamp(new_y, idle_y, idle_y + track_height)
 
-func _process(delta):
+func _process(_delta):
 	var pull = ($Container/Lever.position.y - idle_y) / track_height
 	pull = clamp(pull, 0.0, 1.0)
 	$Container/Lever.color = Color(pull, 1.0 - pull, 0.2)
-	if controller and controller.active_marble:
-		controller.active_marble.update_aim_line(lerp(0.5, 1.0, pull), controller.aim_angle)
+	if GameState.active_marble:
+		GameState.active_marble.update_aim_line(lerp(0.5, 1.0, pull), controller.aim_angle)
 	if lever_dragging and pull >= 0.95:
 		if not wiggling:
 			wiggling = true

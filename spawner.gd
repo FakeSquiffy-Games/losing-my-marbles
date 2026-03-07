@@ -1,6 +1,9 @@
 extends Marker2D
 
-@export var player_marble: RigidBody2D
+# Marble Count, amount placeholder for summoning marbles 
+# SpawnRadius, area of spawning
+# MarbleRadius, to avoid spawning in same location
+
 @export var marble_scene: PackedScene
 @export var marble_count: int = 10
 @export var spawn_radius: float = 170.0
@@ -10,7 +13,7 @@ func _ready():
 	$"../FullHUD/SpawnMarbles".pressed.connect(spawn_marbles)
 
 func spawn_marbles():
-	if player_marble and player_marble.linear_velocity.length() > 5:
+	if GameState.active_marble and GameState.active_marble.linear_velocity.length() > 5:
 		return
 	var colors = ["red", "blue", "yellow"]
 	var placed_positions = []
