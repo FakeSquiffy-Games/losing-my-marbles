@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://dst0xqq7jk2ay"]
+
+[ext_resource type="Script" uid="uid://dfxsw6kfa227c" path="res://resources/cards/card_data.gd" id="1_bhepu"]
+
+[resource]
+script = ExtResource("1_bhepu")
+card_name = "Strike"
+type = 1
+description = "x2 marble speed"
+effect_id = "marble_effect"
+metadata/_custom_type_script = "uid://dfxsw6kfa227c"

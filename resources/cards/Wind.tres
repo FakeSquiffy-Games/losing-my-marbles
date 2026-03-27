@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://b08hd0j8j8aml"]
+
+[ext_resource type="Script" uid="uid://dfxsw6kfa227c" path="res://resources/cards/card_data.gd" id="1_rb3vt"]
+
+[resource]
+script = ExtResource("1_rb3vt")
+card_name = "Wind"
+type = 3
+description = "+10mph east "
+effect_id = "terrain_effect"
+metadata/_custom_type_script = "uid://dfxsw6kfa227c"

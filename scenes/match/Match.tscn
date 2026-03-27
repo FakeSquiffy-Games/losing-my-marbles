@@ -1,11 +1,34 @@
 [gd_scene format=3 uid="uid://bab8f8uysmr41"]
 
 [ext_resource type="Script" uid="uid://bckan25ba6dhk" path="res://scenes/match/match_manager.gd" id="1_whlw6"]
+[ext_resource type="Script" uid="uid://dfxsw6kfa227c" path="res://resources/cards/card_data.gd" id="2_3irga"]
+[ext_resource type="Script" uid="uid://bw8hd6bcrkdjn" path="res://scenes/match/play_area.gd" id="2_i6uep"]
+[ext_resource type="Resource" uid="uid://cb6f7snpttemr" path="res://resources/cards/BigMarble.tres" id="3_5l6y0"]
+[ext_resource type="Resource" uid="uid://dst0xqq7jk2ay" path="res://resources/cards/Strike.tres" id="4_bsgig"]
+[ext_resource type="Resource" uid="uid://bu0qpgud683oa" path="res://resources/cards/Swap.tres" id="5_gfkl4"]
+[ext_resource type="Resource" uid="uid://b08hd0j8j8aml" path="res://resources/cards/Wind.tres" id="6_tu8jm"]
+[ext_resource type="PackedScene" uid="uid://cndytqoqcwcpw" path="res://scenes/entities/marble/DummyMarble.tscn" id="8_cm5a1"]
 
 [node name="Match" type="Node2D" unique_id=1949434338]
 script = ExtResource("1_whlw6")
+card_database = Array[ExtResource("2_3irga")]([ExtResource("3_5l6y0"), ExtResource("4_bsgig"), ExtResource("5_gfkl4"), ExtResource("6_tu8jm")])
 
 [node name="HUD" type="CanvasLayer" parent="." unique_id=1268579650]
+
+[node name="PlayArea" type="Panel" parent="HUD" unique_id=1276783605]
+unique_name_in_owner = true
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -200.0
+offset_right = 300.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_i6uep")
 
 [node name="TopUI" type="MarginContainer" parent="HUD" unique_id=459713189]
 anchors_preset = 10
@@ -26,18 +49,41 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Phase: None"
 
+[node name="ManaLabel" type="Label" parent="HUD/TopUI/VBoxContainer" unique_id=951681343]
+unique_name_in_owner = true
+layout_mode = 2
+text = "HP: 0 | Mana: 0"
+horizontal_alignment = 1
+
 [node name="BottomUI" type="MarginContainer" parent="HUD" unique_id=978633814]
-anchors_preset = 3
-anchor_left = 1.0
+anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -40.0
-offset_top = -40.0
-grow_horizontal = 0
+offset_top = -31.0
+grow_horizontal = 2
 grow_vertical = 0
 
-[node name="NextPhaseButton" type="Button" parent="HUD/BottomUI" unique_id=98051663]
+[node name="VBoxContainer" type="VBoxContainer" parent="HUD/BottomUI" unique_id=1313351447]
+layout_mode = 2
+
+[node name="HandContainer" type="HBoxContainer" parent="HUD/BottomUI/VBoxContainer" unique_id=1779141741]
+unique_name_in_owner = true
+layout_mode = 2
+alignment = 1
+
+[node name="NextPhaseButton" type="Button" parent="HUD/BottomUI/VBoxContainer" unique_id=98051663]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Next Phase"
+
+[node name="Node2D" type="Node2D" parent="." unique_id=365536205]
+
+[node name="DummyMarble" parent="Node2D" unique_id=424187321 instance=ExtResource("8_cm5a1")]
+position = Vector2(1085, 524)
+
+[node name="DummyMarble2" parent="Node2D" unique_id=2099949715 instance=ExtResource("8_cm5a1")]
+position = Vector2(158, 323)
+
+[node name="DummyMarble3" parent="Node2D" unique_id=505269508 instance=ExtResource("8_cm5a1")]
+position = Vector2(1083, 149)

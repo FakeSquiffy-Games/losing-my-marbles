@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://cndytqoqcwcpw"]
+
+[ext_resource type="Script" uid="uid://dx5bq11lq68dt" path="res://scenes/entities/marble/dummy_marble.gd" id="1_wl430"]
+[ext_resource type="Texture2D" uid="uid://qhpc4sp61w7g" path="res://icon.svg" id="2_0g6ax"]
+
+[node name="DummyMarble" type="Node2D" unique_id=424187321]
+script = ExtResource("1_wl430")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=853745842]
+texture = ExtResource("2_0g6ax")
+
+[node name="Label" type="Label" parent="." unique_id=829224925]
+offset_right = 40.0
+offset_bottom = 23.0
