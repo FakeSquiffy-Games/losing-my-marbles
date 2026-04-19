@@ -5,7 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://ciaqxx5sxa5wo" path="res://scenes/entities/marble.tscn" id="2_h2lqh"]
 [ext_resource type="Texture2D" uid="uid://ckqnl6ugua241" path="res://assets/SMS Pool Asset Pack FREE/white/0.png" id="2_xo2vs"]
 [ext_resource type="PackedScene" uid="uid://c75et1a60xk56" path="res://scenes/ui/flick_hud.tscn" id="3_h2lqh"]
-[ext_resource type="Script" uid="uid://dx1gfu0lxxj56" path="res://controllers/marble_controller.gd" id="3_igvj6"]
+[ext_resource type="Script" uid="uid://dx1gfu0lxxj56" path="res://components/MarbleController.gd" id="3_igvj6"]
 [ext_resource type="PackedScene" uid="uid://dpttrskr6mrj1" path="res://scenes/terrain/rotatable_area.tscn" id="3_n7k1k"]
 [ext_resource type="PackedScene" uid="uid://vyidihqt3miq" path="res://scenes/terrain/spawner.tscn" id="4_iqhxt"]
 [ext_resource type="PackedScene" uid="uid://gf4bbc4cpfyd" path="res://scenes/ui/full_hud.tscn" id="5_iqhxt"]

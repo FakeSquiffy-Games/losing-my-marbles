@@ -1,3 +1,6 @@
+## MarbleController.gd
+## Handles which marble is selected as the Player's Marble.
+class_name MarbleController
 extends Node
 
 var is_rotating: bool = false
