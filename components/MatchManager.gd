@@ -277,6 +277,7 @@ func _sync_stats(updated_stats: Dictionary) -> void:
 	
 # Test Functionalities for toggling between scenes:
 func _on_switch_to_terrain_pressed() -> void:
+	$Sprite2D.visible = false
 	$Node2D.visible = false
 	$HUD.visible = false
 	terrain_node = load("res://scenes/terrain/terrain.tscn").instantiate()
@@ -292,6 +293,7 @@ func _return_to_match() -> void:
 		terrain_node = null
 	$HUD.visible = true
 	$Node2D.visible = true
+	$Sprite2D.visible = true
 
 func _set_terrain_visible(show: bool) -> void:
 	if terrain_node != null:

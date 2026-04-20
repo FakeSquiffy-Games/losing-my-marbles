@@ -8,10 +8,37 @@
 [ext_resource type="Resource" uid="uid://bu0qpgud683oa" path="res://resources/cards/Swap.tres" id="5_gfkl4"]
 [ext_resource type="Resource" uid="uid://b08hd0j8j8aml" path="res://resources/cards/Wind.tres" id="6_tu8jm"]
 [ext_resource type="PackedScene" uid="uid://cndytqoqcwcpw" path="res://scenes/entities/marble/DummyMarble.tscn" id="8_cm5a1"]
+[ext_resource type="Texture2D" uid="uid://buh0weh4ym3nm" path="res://assets/placeholder_sprites/Office_1920x1080.png" id="9_iixe4"]
+[ext_resource type="FontFile" uid="uid://dllly6avq8lia" path="res://assets/fonts/pirkkala.ttf" id="9_jval0"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_wvwla"]
+font = ExtResource("9_jval0")
+font_size = 32
+outline_size = 12
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_o7qs2"]
+font = ExtResource("9_jval0")
+font_size = 32
+outline_size = 12
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_eh1bq"]
+font = ExtResource("9_jval0")
+font_size = 32
+font_color = Color(0.77254903, 0, 0.13333334, 1)
+outline_size = 12
+outline_color = Color(0, 0, 0, 1)
 
 [node name="Match" type="Node2D" unique_id=1949434338]
 script = ExtResource("1_whlw6")
 card_database = Array[ExtResource("2_3irga")]([ExtResource("3_5l6y0"), ExtResource("4_bsgig"), ExtResource("5_gfkl4"), ExtResource("6_tu8jm")])
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=2041406449]
+modulate = Color(1, 1, 1, 0.5921569)
+position = Vector2(643, 363.5)
+scale = Vector2(0.68, 0.68)
+texture = ExtResource("9_iixe4")
 
 [node name="HUD" type="CanvasLayer" parent="." unique_id=1268579650]
 
@@ -43,16 +70,19 @@ alignment = 1
 unique_name_in_owner = true
 layout_mode = 2
 text = "Waiting for server..."
+label_settings = SubResource("LabelSettings_wvwla")
 
 [node name="PhaseLabel" type="Label" parent="HUD/TopUI/VBoxContainer" unique_id=884868850]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Phase: None"
+label_settings = SubResource("LabelSettings_o7qs2")
 
 [node name="ManaLabel" type="Label" parent="HUD/TopUI/VBoxContainer" unique_id=951681343]
 unique_name_in_owner = true
 layout_mode = 2
 text = "HP: 0 | Mana: 0"
+label_settings = SubResource("LabelSettings_eh1bq")
 horizontal_alignment = 1
 
 [node name="BottomUI" type="MarginContainer" parent="HUD" unique_id=978633814]
@@ -75,11 +105,13 @@ alignment = 1
 [node name="NextPhaseButton" type="Button" parent="HUD/BottomUI/VBoxContainer" unique_id=98051663]
 unique_name_in_owner = true
 layout_mode = 2
+theme_override_fonts/font = ExtResource("9_jval0")
 text = "Next Phase"
 
 [node name="SwitchToTerrainButton" type="Button" parent="HUD/BottomUI/VBoxContainer" unique_id=140097109]
 unique_name_in_owner = true
 layout_mode = 2
+theme_override_fonts/font = ExtResource("9_jval0")
 text = "Aim on Terrain"
 
 [node name="Node2D" type="Node2D" parent="." unique_id=365536205]
