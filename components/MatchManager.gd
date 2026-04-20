@@ -48,7 +48,7 @@ func _ready() -> void:
 		# THE FIX: Wait exactly 1 frame so the network path is fully registered
 		await get_tree().process_frame 
 		_notify_server_loaded.rpc_id(1)
-		
+	AudioManager.play_ui_sound("background", )
 
 
 func _initialize_match() -> void:

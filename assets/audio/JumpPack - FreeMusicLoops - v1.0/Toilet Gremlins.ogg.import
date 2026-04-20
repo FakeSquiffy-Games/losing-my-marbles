@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://btaecxhj8ijk5"
+path="res://.godot/imported/Toilet Gremlins.ogg-3e215dcd3c522aaa9e6f366537a8f2c4.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/audio/JumpPack - FreeMusicLoops - v1.0/Toilet Gremlins.ogg"
+dest_files=["res://.godot/imported/Toilet Gremlins.ogg-3e215dcd3c522aaa9e6f366537a8f2c4.oggvorbisstr"]
+
+[params]
+
+loop=true
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

@@ -4,8 +4,8 @@ extends Node
 ## Dictionary to map string names to your audio files.
 ## (Update these paths when your partner imports the actual assets!)
 var sounds: Dictionary = {
-	## Format: "name" : preload("res://assets/audio/file.wav),
-
+	## Format: "name" : preload("res://assets/audio/file.wav"),
+	"background" : preload("res://assets/audio/JumpPack - FreeMusicLoops - v1.0/Toilet Gremlins.ogg")
 }
 
 ## Dictionary of active sounds for ambience and intro.

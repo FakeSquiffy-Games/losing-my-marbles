@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://bx5i3h4fyubhn"
+path="res://.godot/imported/Forbidden Grotto.ogg-f5ec0e854b558e32d37992ab13ad5f0f.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/audio/JumpPack - FreeMusicLoops - v1.0/Forbidden Grotto.ogg"
+dest_files=["res://.godot/imported/Forbidden Grotto.ogg-f5ec0e854b558e32d37992ab13ad5f0f.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

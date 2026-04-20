@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://chbh54y0a4vo1"
+path="res://.godot/imported/Bioluminescence.ogg-75005013966e7f0d77682adc7a9eee05.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/audio/JumpPack - FreeMusicLoops - v1.0/Bioluminescence.ogg"
+dest_files=["res://.godot/imported/Bioluminescence.ogg-75005013966e7f0d77682adc7a9eee05.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

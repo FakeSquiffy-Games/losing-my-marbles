@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://b7ys5m3rxogtp"
+path="res://.godot/imported/Grace, Class, and Style.ogg-20b11ab08c4bdc847eec9bcfe3b759eb.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/audio/JumpPack - FreeMusicLoops - v1.0/Grace, Class, and Style.ogg"
+dest_files=["res://.godot/imported/Grace, Class, and Style.ogg-20b11ab08c4bdc847eec9bcfe3b759eb.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

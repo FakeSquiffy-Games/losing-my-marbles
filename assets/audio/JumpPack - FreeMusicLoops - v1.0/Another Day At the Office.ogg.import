@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://dombus5xeagbj"
+path="res://.godot/imported/Another Day At the Office.ogg-a3025e17dd74bdfe8c5c88519167f45f.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/audio/JumpPack - FreeMusicLoops - v1.0/Another Day At the Office.ogg"
+dest_files=["res://.godot/imported/Another Day At the Office.ogg-a3025e17dd74bdfe8c5c88519167f45f.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://bxml41jlq3ocu"
+path="res://.godot/imported/Shadow Lurking.ogg-1ebd43c85df47fbb79ad3e776b65f273.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/audio/JumpPack - FreeMusicLoops - v1.0/Shadow Lurking.ogg"
+dest_files=["res://.godot/imported/Shadow Lurking.ogg-1ebd43c85df47fbb79ad3e776b65f273.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4
