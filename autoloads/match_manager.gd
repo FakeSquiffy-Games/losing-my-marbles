@@ -25,9 +25,12 @@ func _ready() -> void:
 	SignalBus.player_disconnected.connect(_on_player_disconnected)
 
 func set_phase(phase: MatchPhase) -> void:
+	print("[MatchManager] set_phase(%d) called, is_server=%s" % [phase, multiplayer.is_server()])
 	if not multiplayer.is_server():
+		print("[MatchManager] set_phase REJECTED — not server")
 		return
 	current_phase = phase
+	print("[MatchManager] phase set to %d, emitting phase_changed" % phase)
 	_sync_match_state.rpc(phase, active_player_id, turn_number, player_health, player_mana)
 	SignalBus.phase_changed.emit(phase)
 

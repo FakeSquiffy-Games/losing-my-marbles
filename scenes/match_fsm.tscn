@@ -5,7 +5,7 @@
 [ext_resource type="Script" uid="uid://cytafq8i1y8qm" path="res://addons/godot_state_charts/atomic_state.gd" id="3_yu274"]
 [ext_resource type="Script" uid="uid://cf1nsco3w0mf6" path="res://addons/godot_state_charts/transition.gd" id="4_wgjvw"]
 
-[node name="MatchFSM" type="Node" unique_id=1232962122]
+[node name="MatchFSM" type="Node" unique_id=460765492]
 script = ExtResource("1_script")
 metadata/_custom_type_script = "uid://couw105c3bde4"
 

@@ -1,6 +1,7 @@
 extends Control
 
 const CHARACTER_DIR := "res://resources/characters/"
+const PASS_DEVICE_SCENE := preload("res://scenes/ui/pass_device.tscn")
 
 @onready var _character_container: HBoxContainer = %CharacterContainer
 @onready var _confirm_button: Button = %ConfirmButton
@@ -10,11 +11,14 @@ const CHARACTER_DIR := "res://resources/characters/"
 var _characters: Array[CharacterData] = []
 var _character_cards: Array[Control] = []
 var _selected_index: int = -1
+var _current_selecting_player: int = 1
+var _ready_for_match: bool = false
 
 func _ready() -> void:
 	_confirm_button.pressed.connect(_on_confirm_pressed)
 	_back_button.pressed.connect(_on_back_pressed)
 	SignalBus.match_started.connect(_on_match_started)
+	SignalBus.device_passed.connect(_on_device_passed)
 	_load_characters()
 	_populate_ui()
 
@@ -79,7 +83,6 @@ func _on_character_selected(index: int) -> void:
 
 	for i in _character_cards.size():
 		var card := _character_cards[i]
-		# Highlight selected, dim others
 		card.modulate = Color.WHITE if i == index else Color(0.5, 0.5, 0.5, 1.0)
 
 func _on_confirm_pressed() -> void:
@@ -87,12 +90,49 @@ func _on_confirm_pressed() -> void:
 		return
 	var chosen := _characters[_selected_index]
 	_confirm_button.disabled = true
-	_status_label.text = "Waiting for opponent..."
-	_request_character_select.rpc_id(1, _selected_index)
-	SignalBus.character_selected.emit(NetworkManager.local_player_id, chosen)
+
+	if NetworkManager.is_host and NetworkManager.session_key != "OFFLINE":
+		_request_character_select.rpc_id(1, _selected_index, _current_selecting_player)
+	SignalBus.character_selected.emit(_current_selecting_player, chosen)
+
+	if NetworkManager.session_key == "OFFLINE":
+		if _current_selecting_player == 1:
+			_show_pass_device(1)
+		else:
+			_status_label.text = "Waiting for match to start..."
+	else:
+		_status_label.text = "Waiting for opponent..."
+
+func _show_pass_device(from_player: int) -> void:
+	var pass_device := PASS_DEVICE_SCENE.instantiate()
+	pass_device.setup(from_player)
+	add_child(pass_device)
+
+func _on_device_passed(next_player_id: int) -> void:
+	if NetworkManager.session_key != "OFFLINE":
+		return
+
+	if _ready_for_match:
+		get_tree().change_scene_to_file("res://scenes/ui/match.tscn")
+		return
+
+	if next_player_id == 2:
+		_current_selecting_player = 2
+		_selected_index = -1
+		_confirm_button.disabled = true
+		_status_label.text = "Player 2: Select your character"
+		for card in _character_cards:
+			card.modulate = Color.WHITE
+
+func _on_match_started() -> void:
+	if NetworkManager.session_key == "OFFLINE":
+		_ready_for_match = true
+		_show_pass_device(1)
+		return
+	get_tree().change_scene_to_file("res://scenes/ui/match.tscn")
 
 @rpc("any_peer", "call_local")
-func _request_character_select(char_index: int) -> void:
+func _request_character_select(char_index: int, selecting_player: int) -> void:
 	if not multiplayer.is_server():
 		return
 
@@ -106,9 +146,6 @@ func _sync_character_select(player_id: int, char_index: int) -> void:
 	var chosen := _characters[char_index]
 	SignalBus.character_selected.emit(player_id, chosen)
 
-func _on_match_started() -> void:
-	pass
-
 func _on_back_pressed() -> void:
 	NetworkManager.reset_network()
 	get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
@@ -116,3 +153,5 @@ func _on_back_pressed() -> void:
 func _exit_tree() -> void:
 	if SignalBus.match_started.is_connected(_on_match_started):
 		SignalBus.match_started.disconnect(_on_match_started)
+	if SignalBus.device_passed.is_connected(_on_device_passed):
+		SignalBus.device_passed.disconnect(_on_device_passed)

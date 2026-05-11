@@ -1,0 +1,83 @@
+[gd_scene format=3 uid="uid://ciuun2pvc63qs"]
+
+[ext_resource type="Script" uid="uid://bfi2aawhgj4fn" path="res://scripts/ui/match.gd" id="1_script"]
+
+[node name="Match" type="Control" unique_id=1521104756]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="HUDContainer" type="VBoxContainer" parent="." unique_id=187485108]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PhaseLabel" type="Label" parent="HUDContainer" unique_id=1737652198]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Pre-Match"
+horizontal_alignment = 1
+
+[node name="TurnLabel" type="Label" parent="HUDContainer" unique_id=1863317829]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Turn: 0"
+horizontal_alignment = 1
+
+[node name="PlayerLabel" type="Label" parent="HUDContainer" unique_id=1433944884]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Active Player: 1"
+horizontal_alignment = 1
+
+[node name="HealthLabel" type="Label" parent="HUDContainer" unique_id=1159610497]
+unique_name_in_owner = true
+layout_mode = 2
+text = "HP  P1: 100  |  P2: 100"
+horizontal_alignment = 1
+
+[node name="ManaLabel" type="Label" parent="HUDContainer" unique_id=1858790185]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Mana  P1: 0  |  P2: 0"
+horizontal_alignment = 1
+
+[node name="ButtonBar" type="HBoxContainer" parent="HUDContainer" unique_id=553400987]
+layout_mode = 2
+alignment = 1
+
+[node name="ReadyButton" type="Button" parent="HUDContainer/ButtonBar" unique_id=1114835295]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "Ready"
+
+[node name="AimButton" type="Button" parent="HUDContainer/ButtonBar" unique_id=1203908781]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "Aim"
+
+[node name="EndTurnButton" type="Button" parent="HUDContainer/ButtonBar" unique_id=294282204]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "End Turn"
+
+[node name="BackButton" type="Button" parent="HUDContainer/ButtonBar" unique_id=894684008]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Leave Match"
+
+[node name="FieldPlaceholder" type="Panel" parent="HUDContainer" unique_id=313363119]
+custom_minimum_size = Vector2(0, 400)
+layout_mode = 2
+size_flags_vertical = 3
