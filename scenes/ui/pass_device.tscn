@@ -1,0 +1,44 @@
+[gd_scene format=3 uid="uid://dok6k74qmseqq"]
+
+[ext_resource type="Script" uid="uid://passdevices" path="res://scripts/ui/pass_device.gd" id="1_script"]
+
+[node name="PassDevice" type="Control" unique_id=3948201567]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1765423098]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -100.0
+offset_right = 250.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MessageLabel" type="Label" parent="VBoxContainer" unique_id=2301984756]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Pass the device to Player 2
+
+Player 1: Do not peek!"
+horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="VBoxContainer" unique_id=4019283746]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 30)
+
+[node name="ConfirmButton" type="Button" parent="VBoxContainer" unique_id=3170594823]
+unique_name_in_owner = true
+layout_mode = 2
+text = "I am Player 2"

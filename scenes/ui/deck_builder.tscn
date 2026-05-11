@@ -1,0 +1,117 @@
+[gd_scene format=3 uid="uid://byjswyrj5ceke"]
+
+[ext_resource type="Script" uid="uid://deckbuilders" path="res://scripts/ui/deck_builder.gd" id="1_script"]
+
+[node name="DeckBuilder" type="Control" unique_id=2891047231]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=2958104632]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Title" type="Label" parent="VBoxContainer" unique_id=3712809561]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Deck Builder"
+horizontal_alignment = 1
+
+[node name="CardListsContainer" type="HBoxContainer" parent="VBoxContainer" unique_id=1027563894]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="AvailableVBox" type="VBoxContainer" parent="VBoxContainer/CardListsContainer" unique_id=2837465012]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="AvailableLabel" type="Label" parent="VBoxContainer/CardListsContainer/AvailableVBox" unique_id=3947561023]
+layout_mode = 2
+text = "Available Cards"
+horizontal_alignment = 1
+
+[node name="CardTypeFilter" type="OptionButton" parent="VBoxContainer/CardListsContainer/AvailableVBox" unique_id=2384756109]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="AvailableCardsList" type="ItemList" parent="VBoxContainer/CardListsContainer/AvailableVBox" unique_id=1728394056]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+allow_reselect = true
+
+[node name="MiddleVBox" type="VBoxContainer" parent="VBoxContainer/CardListsContainer" unique_id=3950471823]
+layout_mode = 2
+alignment = 1
+
+[node name="AddPrivateButton" type="Button" parent="VBoxContainer/CardListsContainer/MiddleVBox" unique_id=2483950174]
+unique_name_in_owner = true
+layout_mode = 2
+text = "→ Private"
+
+[node name="AddPublicButton" type="Button" parent="VBoxContainer/CardListsContainer/MiddleVBox" unique_id=1739405826]
+unique_name_in_owner = true
+layout_mode = 2
+text = "→ Public"
+
+[node name="Spacer1" type="Control" parent="VBoxContainer/CardListsContainer/MiddleVBox" unique_id=4061837294]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 20)
+
+[node name="RemoveButton" type="Button" parent="VBoxContainer/CardListsContainer/MiddleVBox" unique_id=3582917460]
+unique_name_in_owner = true
+layout_mode = 2
+text = "← Remove"
+
+[node name="DeckVBox" type="VBoxContainer" parent="VBoxContainer/CardListsContainer" unique_id=4193605782]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="PrivateLabel" type="Label" parent="VBoxContainer/CardListsContainer/DeckVBox" unique_id=1284739605]
+layout_mode = 2
+text = "Private Deck"
+horizontal_alignment = 1
+
+[node name="PrivateDeckList" type="ItemList" parent="VBoxContainer/CardListsContainer/DeckVBox" unique_id=3759201483]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+allow_reselect = true
+
+[node name="PoolVBox" type="VBoxContainer" parent="VBoxContainer/CardListsContainer" unique_id=2501938476]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="PublicLabel" type="Label" parent="VBoxContainer/CardListsContainer/PoolVBox" unique_id=3610294857]
+layout_mode = 2
+text = "Public Marble Pool"
+horizontal_alignment = 1
+
+[node name="PublicPoolList" type="ItemList" parent="VBoxContainer/CardListsContainer/PoolVBox" unique_id=2874561093]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+allow_reselect = true
+
+[node name="BottomBar" type="HBoxContainer" parent="VBoxContainer" unique_id=1539204876]
+layout_mode = 2
+
+[node name="PoolStatusLabel" type="Label" parent="VBoxContainer/BottomBar" unique_id=3094812574]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Public Marble Pool (0/5)"
+horizontal_alignment = 1
+
+[node name="BackButton" type="Button" parent="VBoxContainer/BottomBar" unique_id=4267193850]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Back"
