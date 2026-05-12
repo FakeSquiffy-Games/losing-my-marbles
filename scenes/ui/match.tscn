@@ -1,6 +1,7 @@
-[gd_scene format=3 uid="uid://ciuun2pvc63qs"]
+[gd_scene load_steps=3 format=3 uid="uid://ciuun2pvc63qs"]
 
 [ext_resource type="Script" uid="uid://bfi2aawhgj4fn" path="res://scripts/ui/match.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/field.tscn" id="2_field"]
 
 [node name="Match" type="Control" unique_id=1521104756]
 layout_mode = 3
@@ -77,7 +78,6 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Leave Match"
 
-[node name="FieldPlaceholder" type="Panel" parent="HUDContainer" unique_id=313363119]
-custom_minimum_size = Vector2(0, 400)
+[node name="Field" parent="HUDContainer" instance=ExtResource("2_field")]
 layout_mode = 2
 size_flags_vertical = 3

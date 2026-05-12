@@ -127,7 +127,7 @@ func _on_device_passed(next_player_id: int) -> void:
 func _on_match_started() -> void:
 	if NetworkManager.session_key == "OFFLINE":
 		_ready_for_match = true
-		_show_pass_device(1)
+		_show_pass_device(2)
 		return
 	get_tree().change_scene_to_file("res://scenes/ui/match.tscn")
 
