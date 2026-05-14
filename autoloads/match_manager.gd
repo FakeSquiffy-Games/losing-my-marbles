@@ -1,17 +1,6 @@
 extends Node
 
-enum MatchPhase {
-	PRE_MATCH = 0,
-	INIT      = 1,
-	DRAW      = 2,
-	PLAY      = 3,
-	AIM       = 4,
-	SIMULATING = 5,
-	END_TURN  = 6,
-	MATCH_OVER = 7,
-}
-
-var current_phase: MatchPhase = MatchPhase.PRE_MATCH
+var current_phase: Enums.MatchState = Enums.MatchState.INIT
 var active_player_id: int = 1
 var turn_number: int = 0
 
@@ -24,7 +13,7 @@ func _ready() -> void:
 	SignalBus.character_selected.connect(_on_character_selected)
 	SignalBus.player_disconnected.connect(_on_player_disconnected)
 
-func set_phase(phase: MatchPhase) -> void:
+func set_phase(phase: Enums.MatchState) -> void:
 	print("[MatchManager] set_phase(%d) called, is_server=%s" % [phase, multiplayer.is_server()])
 	if not multiplayer.is_server():
 		print("[MatchManager] set_phase REJECTED — not server")
@@ -80,7 +69,7 @@ func spend_mana(player_id: int, amount: int) -> bool:
 
 @rpc("authority", "call_local", "reliable")
 func _sync_match_state(phase: int, active_player: int, turn: int, health: Dictionary, mana: Dictionary) -> void:
-	current_phase = phase as MatchPhase
+	current_phase = phase as Enums.MatchState
 	active_player_id = active_player
 	turn_number = turn
 	player_health = health

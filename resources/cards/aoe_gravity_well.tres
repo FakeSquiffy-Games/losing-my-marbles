@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1")
+card_name = "Gravity Well"
 type = 4
 mana_cost = 2
 effects = []

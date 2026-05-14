@@ -39,11 +39,11 @@ func _ready() -> void:
 	print("[Match] send_event('begin') scheduled via call_deferred")
 
 func _on_phase_changed(phase: int) -> void:
-	print("[Match] _on_phase_changed: ", _phase_name(phase))
+	print("[Match] _on_phase_changed: ", _phase_name(phase as Enums.MatchState))
 	_update_hud()
 	_show_phase_buttons()
 
-	if phase == MatchManager.MatchPhase.DRAW:
+	if phase == Enums.MatchState.DRAW:
 		MatchManager.generate_mana(MatchManager.active_player_id)
 
 func _on_ready_pressed() -> void:
@@ -56,7 +56,7 @@ func _on_end_turn_pressed() -> void:
 	_fsm.send_event("end_turn")
 
 func _on_device_passed(next_player_id: int) -> void:
-	if MatchManager.current_phase != MatchManager.MatchPhase.END_TURN:
+	if MatchManager.current_phase != Enums.MatchState.END_TURN:
 		return
 	MatchManager.set_active_player(next_player_id)
 	_fsm.send_event("next_turn")
@@ -81,17 +81,17 @@ func _show_phase_buttons() -> void:
 	var is_server_ok := multiplayer.is_server() or not is_offline
 
 	print("[Match] _show_phase_buttons: phase=%s is_active=%s is_server_ok=%s" % [_phase_name(phase), is_active, is_server_ok])
-	print("[Match]   ready_btn: visible=%s (phase==DRAW=%s)" % [phase == MatchManager.MatchPhase.DRAW and is_server_ok, phase == MatchManager.MatchPhase.DRAW])
+	print("[Match]   ready_btn: visible=%s (phase==DRAW=%s)" % [phase == Enums.MatchState.DRAW and is_server_ok, phase == Enums.MatchState.DRAW])
 
-	_ready_button.visible = phase == MatchManager.MatchPhase.DRAW and is_server_ok
-	_aim_button.visible = phase == MatchManager.MatchPhase.PLAY and is_server_ok
-	_end_turn_button.visible = phase == MatchManager.MatchPhase.PLAY and is_server_ok
+	_ready_button.visible = phase == Enums.MatchState.DRAW and is_server_ok
+	_aim_button.visible = phase == Enums.MatchState.PLAY and is_server_ok
+	_end_turn_button.visible = phase == Enums.MatchState.PLAY and is_server_ok
 
 	_ready_button.disabled = not is_active
 	_aim_button.disabled = not is_active
 	_end_turn_button.disabled = not is_active
 
-	if phase == MatchManager.MatchPhase.END_TURN and multiplayer.is_server():
+	if phase == Enums.MatchState.END_TURN and multiplayer.is_server():
 		if NetworkManager.session_key == "OFFLINE":
 			var pass_device := PASS_DEVICE_SCENE.instantiate()
 			pass_device.setup(MatchManager.active_player_id)
@@ -106,16 +106,15 @@ func _disable_buttons() -> void:
 	_aim_button.disabled = true
 	_end_turn_button.disabled = true
 
-func _phase_name(phase: MatchManager.MatchPhase) -> String:
+func _phase_name(phase: Enums.MatchState) -> String:
 	match phase:
-		MatchManager.MatchPhase.PRE_MATCH: return "Pre-Match"
-		MatchManager.MatchPhase.INIT: return "Init"
-		MatchManager.MatchPhase.DRAW: return "Draw"
-		MatchManager.MatchPhase.PLAY: return "Play"
-		MatchManager.MatchPhase.AIM: return "Aim"
-		MatchManager.MatchPhase.SIMULATING: return "Simulating"
-		MatchManager.MatchPhase.END_TURN: return "End Turn"
-		MatchManager.MatchPhase.MATCH_OVER: return "Match Over"
+		Enums.MatchState.INIT: return "Init"
+		Enums.MatchState.DRAW: return "Draw"
+		Enums.MatchState.PLAY: return "Play"
+		Enums.MatchState.AIM: return "Aim"
+		Enums.MatchState.SIMULATING: return "Simulating"
+		Enums.MatchState.END_TURN: return "End Turn"
+		Enums.MatchState.MATCH_OVER: return "Match Over"
 		_: return "Unknown"
 
 func _on_back_pressed() -> void:

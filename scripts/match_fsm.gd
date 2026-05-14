@@ -24,7 +24,7 @@ func _ready() -> void:
 
 func _on_init_entered() -> void:
 	print("[FSM] >>> Init state ENTERED — calling MatchManager.set_phase(INIT)")
-	MatchManager.set_phase(MatchManager.MatchPhase.INIT)
+	MatchManager.set_phase(Enums.MatchState.INIT)
 	_spawn_initial_marbles()
 
 func _spawn_initial_marbles() -> void:
@@ -49,24 +49,24 @@ func _spawn_initial_marbles() -> void:
 
 func _on_draw_entered() -> void:
 	print("[FSM] >>> Draw state ENTERED — calling MatchManager.set_phase(DRAW)")
-	MatchManager.set_phase(MatchManager.MatchPhase.DRAW)
+	MatchManager.set_phase(Enums.MatchState.DRAW)
 
 func _on_play_entered() -> void:
 	print("[FSM] >>> Play state ENTERED")
-	MatchManager.set_phase(MatchManager.MatchPhase.PLAY)
+	MatchManager.set_phase(Enums.MatchState.PLAY)
 
 func _on_aim_entered() -> void:
 	print("[FSM] >>> Aim state ENTERED")
-	MatchManager.set_phase(MatchManager.MatchPhase.AIM)
+	MatchManager.set_phase(Enums.MatchState.AIM)
 
 func _on_simulating_entered() -> void:
 	print("[FSM] >>> Simulating state ENTERED")
-	MatchManager.set_phase(MatchManager.MatchPhase.SIMULATING)
+	MatchManager.set_phase(Enums.MatchState.SIMULATING)
 
 func _on_end_turn_entered() -> void:
 	print("[FSM] >>> EndTurn state ENTERED")
-	MatchManager.set_phase(MatchManager.MatchPhase.END_TURN)
+	MatchManager.set_phase(Enums.MatchState.END_TURN)
 
 func _on_match_over_entered() -> void:
 	print("[FSM] >>> MatchOver state ENTERED")
-	MatchManager.set_phase(MatchManager.MatchPhase.MATCH_OVER)
+	MatchManager.set_phase(Enums.MatchState.MATCH_OVER)

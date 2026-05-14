@@ -4,6 +4,8 @@
 
 [resource]
 script = ExtResource("1_script")
+character_name = "Default"
 health = 100
 mana = 3
 power = 1.0
+exclusive_cards = []

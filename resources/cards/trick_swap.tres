@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1")
+card_name = "Swap"
 type = 2
 mana_cost = 2
 effects = []

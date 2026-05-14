@@ -13,6 +13,7 @@ weight = 0.7
 
 [resource]
 script = ExtResource("1_marble")
+card_name = "Marble Bouncy"
 type = 0
 mana_cost = 0
 effects = []

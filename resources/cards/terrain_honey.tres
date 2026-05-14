@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1")
+card_name = "Honey Terrain"
 type = 3
 mana_cost = 3
 effects = []
