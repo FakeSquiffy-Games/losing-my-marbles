@@ -25,6 +25,27 @@ func _ready() -> void:
 func _on_init_entered() -> void:
 	print("[FSM] >>> Init state ENTERED — calling MatchManager.set_phase(INIT)")
 	MatchManager.set_phase(MatchManager.MatchPhase.INIT)
+	_spawn_initial_marbles()
+
+func _spawn_initial_marbles() -> void:
+	var fields := get_tree().get_nodes_in_group("game_field")
+	if fields.is_empty():
+		print("[FSM] No game_field found for spawning")
+		return
+
+	var field := fields[0]
+	var default_marble := load("res://resources/cards/marble_standard.tres") as MarbleData
+
+	field.spawn_marble(default_marble, 1, Vector2(150, 250), Color.RED)
+	field.spawn_marble(default_marble, 1, Vector2(200, 180), Color.RED)
+	field.spawn_marble(default_marble, 1, Vector2(200, 320), Color.RED)
+
+	field.spawn_marble(default_marble, 2, Vector2(750, 250), Color.BLUE)
+	field.spawn_marble(default_marble, 2, Vector2(700, 180), Color.BLUE)
+	field.spawn_marble(default_marble, 2, Vector2(700, 320), Color.BLUE)
+
+	print("[FSM] Initial marbles spawned")
+	FieldStateManager._push_to_field()
 
 func _on_draw_entered() -> void:
 	print("[FSM] >>> Draw state ENTERED — calling MatchManager.set_phase(DRAW)")

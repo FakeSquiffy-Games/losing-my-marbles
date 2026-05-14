@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/marble.gd" id="1_script"]
+
+[sub_resource type="CircleShape2D" id="1_circle"]
+radius = 15.0
+
+[node name="Marble" type="RigidBody2D"]
+script = ExtResource("1_script")
+collision_layer = 1
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("1_circle")

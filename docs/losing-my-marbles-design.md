@@ -67,7 +67,7 @@ A player may perform multiple AIM/PLAY cycles per turn. After completing as many
 - **Deck Building (Public):** Fill a fixed-size public deck with owned marbles. These will populate the shared field pool.
 
 ### During a Match
-- Knock opposing marbles off the field to trigger their effects and deal damage to their owner.
+- Knock opposing marbles off the field to trigger their effects and deal damage to your opponent.
 - Protect your own health total from reaching zero.
 - Manipulate physics (gravity, stickiness, friction) using Terrain and Area-of-Effect cards.
 - Execute precise shots utilizing the character's *Power* modifier combined with the flick slider.
@@ -108,7 +108,7 @@ Each player selects one character before a match begins.
 - Marbles are drawn from this pool to populate the field initially and refill it when empty.
 
 #### Private Deck
-- Contains Power-Ups, Tricks, Terrains, and Area-of-Effects (AOEs).
+- Contains Marbles, Power-Ups, Tricks, Terrains, and Area-of-Effects (AOEs).
 - The player draws from this deck at the start of each turn.
 - When the private deck is exhausted, all consumed cards reshuffle back into it.
 - Never visible to opponents (hidden information).

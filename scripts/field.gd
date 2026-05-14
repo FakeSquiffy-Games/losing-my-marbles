@@ -3,11 +3,12 @@ extends Node2D
 const FIELD_WIDTH: float = 900.0
 const FIELD_HEIGHT: float = 500.0
 const WALL_THICKNESS: float = 12.0
+const MARBLE_SCENE := preload("res://scenes/marble.tscn")
 
 @onready var _gravity_zone: Area2D = %GravityZone
 
-var gravity_direction: Vector2 = Vector2.DOWN
-var gravity_magnitude: float = 980.0
+var gravity_direction: Vector2 = Vector2.ZERO
+var gravity_magnitude: float = 0.0
 
 func _ready() -> void:
 	add_to_group("game_field")
@@ -23,6 +24,13 @@ func set_gravity(direction: Vector2, magnitude: float) -> void:
 	gravity_direction = direction
 	gravity_magnitude = magnitude
 	_apply_gravity()
+
+func spawn_marble(data: MarbleData, player_id: int, position: Vector2, color: Color) -> Marble:
+	var marble := MARBLE_SCENE.instantiate() as Marble
+	marble.setup(data, player_id, color)
+	marble.position = position
+	add_child(marble)
+	return marble
 
 func set_linear_damp(damp: float) -> void:
 	for body in get_tree().get_nodes_in_group("field_marbles"):
