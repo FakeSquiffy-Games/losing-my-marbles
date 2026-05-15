@@ -29,8 +29,9 @@ func clear_terrain_delta(key: String) -> void:
 	_terrain_delta.erase(key)
 	_push_to_field()
 
-func add_aoe_delta(delta: Dictionary) -> int:
+func add_aoe_delta(delta: Dictionary, turns_remaining: int = 0) -> int:
 	var idx := _aoe_deltas.size()
+	delta["turns_remaining"] = turns_remaining
 	_aoe_deltas.append(delta)
 	_push_to_field()
 	return idx
@@ -38,6 +39,20 @@ func add_aoe_delta(delta: Dictionary) -> int:
 func remove_aoe_delta(idx: int) -> void:
 	if idx >= 0 and idx < _aoe_deltas.size():
 		_aoe_deltas.remove_at(idx)
+		_push_to_field()
+
+func tick_aoe_durations() -> void:
+	var changed := false
+	var i := _aoe_deltas.size() - 1
+	while i >= 0:
+		var aoe: Dictionary = _aoe_deltas[i]
+		if aoe.has("turns_remaining"):
+			aoe["turns_remaining"] = aoe["turns_remaining"] - 1
+			if aoe["turns_remaining"] <= 0:
+				_aoe_deltas.remove_at(i)
+			changed = true
+		i -= 1
+	if changed:
 		_push_to_field()
 
 func _get_effective() -> Dictionary:

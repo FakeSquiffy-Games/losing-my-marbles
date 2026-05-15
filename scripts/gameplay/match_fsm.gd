@@ -18,6 +18,7 @@ func _ready() -> void:
 	root.get_node("Play").state_entered.connect(_on_play_entered)
 	root.get_node("Aim").state_entered.connect(_on_aim_entered)
 	root.get_node("Simulating").state_entered.connect(_on_simulating_entered)
+	root.get_node("Simulating").state_exited.connect(_on_simulating_exited)
 	root.get_node("EndTurn").state_entered.connect(_on_end_turn_entered)
 	root.get_node("MatchOver").state_entered.connect(_on_match_over_entered)
 	print("[FSM] All state_entered signals connected")
@@ -66,8 +67,13 @@ func _on_simulating_entered() -> void:
 	print("[FSM] >>> Simulating state ENTERED")
 	MatchManager.set_phase(Enums.MatchState.SIMULATING)
 
+func _on_simulating_exited() -> void:
+	print("[FSM] >>> Simulating state EXITED — resetting marble_played")
+	MatchManager.reset_marble_played()
+
 func _on_end_turn_entered() -> void:
 	print("[FSM] >>> EndTurn state ENTERED")
+	FieldStateManager.tick_aoe_durations()
 	MatchManager.set_phase(Enums.MatchState.END_TURN)
 
 func _on_match_over_entered() -> void:
