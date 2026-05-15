@@ -1,26 +1,67 @@
 extends Node2D
 
-const FIELD_WIDTH: float = 900.0
-const FIELD_HEIGHT: float = 500.0
+const FIELD_RADIUS: float = 220.0
+const FIELD_CENTER: Vector2 = Vector2(450.0, 250.0)
 const WALL_THICKNESS: float = 12.0
+const WALL_SEGMENTS: int = 72
 const MARBLE_SCENE := preload("res://scenes/gameplay/marble.tscn")
 
 const SHOOTER_FOCUS_PRIORITY: int = 20
 const BOARD_OVERVIEW_PRIORITY: int = 10
 
+@onready var _background: ColorRect = %Background
 @onready var _gravity_zone: Area2D = %GravityZone
 @onready var _board_cam: PhantomCamera2D = %BoardOverviewCamera
 
 var _shooter_cam: PhantomCamera2D
+var _shooter_sample_marble: Marble = null
 var gravity_direction: Vector2 = Vector2.ZERO
 var gravity_magnitude: float = 0.0
 
 func _ready() -> void:
 	add_to_group("game_field")
 	_apply_gravity()
+	_create_circular_wall()
+	_update_gravity_shape()
 	_setup_boundary_detector()
 	_setup_shooter_camera()
+	$Camera2D.ignore_rotation = false
+	_background.visible = false
+	queue_redraw()
 	SignalBus.phase_changed.connect(_on_phase_changed_for_camera)
+	SignalBus.phase_changed.connect(_on_phase_changed_for_shooter_marble)
+
+func _draw() -> void:
+	draw_circle(FIELD_CENTER, FIELD_RADIUS, Color(0.15, 0.2, 0.15, 1.0))
+	draw_arc(FIELD_CENTER, FIELD_RADIUS, 0, TAU, 72, Color(0.25, 0.35, 0.25, 1.0), WALL_THICKNESS)
+
+func _create_circular_wall() -> void:
+	var outer := PackedVector2Array()
+	var inner := PackedVector2Array()
+	for i: int in range(WALL_SEGMENTS):
+		var angle := float(i) / WALL_SEGMENTS * TAU
+		outer.append(FIELD_CENTER + Vector2(cos(angle), sin(angle)) * FIELD_RADIUS)
+	for i: int in range(WALL_SEGMENTS):
+		var angle := float(WALL_SEGMENTS - 1 - i) / WALL_SEGMENTS * TAU
+		inner.append(FIELD_CENTER + Vector2(cos(angle), sin(angle)) * (FIELD_RADIUS - WALL_THICKNESS))
+
+	var polygon := outer
+	polygon.append_array(inner)
+
+	var wall_body := StaticBody2D.new()
+	wall_body.name = "CircularWall"
+	var collision := CollisionPolygon2D.new()
+	collision.polygon = polygon
+	wall_body.add_child(collision)
+	add_child(wall_body)
+
+func _update_gravity_shape() -> void:
+	var shape_node := _gravity_zone.get_node_or_null("CollisionShape2D")
+	if shape_node:
+		var circle := CircleShape2D.new()
+		circle.radius = FIELD_RADIUS
+		shape_node.shape = circle
+		shape_node.position = FIELD_CENTER
 
 func _apply_gravity() -> void:
 	if _gravity_zone:
@@ -45,6 +86,11 @@ func set_linear_damp(damp: float) -> void:
 		if body is RigidBody2D:
 			body.linear_damp = damp
 
+func set_map_rotation(degrees: float) -> void:
+	_board_cam.rotation_degrees = degrees
+	if _shooter_cam:
+		_shooter_cam.rotation_degrees = degrees
+
 func find_valid_position(preferred: Vector2, radius: float = Marble.RADIUS) -> Vector2:
 	var space_state := get_world_2d().direct_space_state
 	var shape := CircleShape2D.new()
@@ -56,27 +102,32 @@ func find_valid_position(preferred: Vector2, radius: float = Marble.RADIUS) -> V
 	query.transform = Transform2D(0, preferred)
 
 	var results := space_state.intersect_shape(query, 1)
-	if results.is_empty():
+	if results.is_empty() and _is_inside_field(preferred, radius):
 		return preferred
 
 	var step := radius * 2.0 + 4.0
 	for attempt: int in 25:
-		var angle := float(attempt) * 0.618033988749895  # golden angle
+		var angle := float(attempt) * 0.618033988749895
 		var dist := sqrt(float(attempt + 1)) * step
 		var candidate := preferred + Vector2.RIGHT.rotated(angle) * dist
-		candidate.x = clampf(candidate.x, radius + WALL_THICKNESS, FIELD_WIDTH - radius - WALL_THICKNESS)
-		candidate.y = clampf(candidate.y, radius + WALL_THICKNESS, FIELD_HEIGHT - radius - WALL_THICKNESS)
+		if not _is_inside_field(candidate, radius):
+			var to_center := FIELD_CENTER - candidate
+			if to_center.length() > 0:
+				candidate = FIELD_CENTER - to_center.normalized() * (FIELD_RADIUS - radius - WALL_THICKNESS - 4.0)
 		query.transform = Transform2D(0, candidate)
 		results = space_state.intersect_shape(query, 1)
-		if results.is_empty():
+		if results.is_empty() and _is_inside_field(candidate, radius):
 			return candidate
 
 	return preferred
 
+func _is_inside_field(pos: Vector2, radius: float) -> bool:
+	return pos.distance_to(FIELD_CENTER) + radius <= FIELD_RADIUS - WALL_THICKNESS - 2.0
+
 func _setup_shooter_camera() -> void:
 	_shooter_cam = PhantomCamera2D.new()
 	_shooter_cam.name = "ShooterFocusCamera"
-	_shooter_cam.position = Vector2(FIELD_WIDTH / 2.0, FIELD_HEIGHT / 2.0)
+	_shooter_cam.position = FIELD_CENTER
 	_shooter_cam.priority = 0
 	add_child(_shooter_cam)
 
@@ -84,6 +135,33 @@ func _on_phase_changed_for_camera(phase: int) -> void:
 	var match_phase: Enums.MatchState = phase as Enums.MatchState
 	var is_aiming := match_phase == Enums.MatchState.AIM or match_phase == Enums.MatchState.SIMULATING
 	_shooter_cam.set_priority(SHOOTER_FOCUS_PRIORITY if is_aiming else 0)
+
+func _on_phase_changed_for_shooter_marble(phase: int) -> void:
+	var match_phase: Enums.MatchState = phase as Enums.MatchState
+	if match_phase == Enums.MatchState.AIM:
+		_spawn_shooter_sample()
+	elif match_phase != Enums.MatchState.SIMULATING:
+		_despawn_shooter_sample()
+
+func _spawn_shooter_sample() -> void:
+	if is_instance_valid(_shooter_sample_marble):
+		return
+	var shooter_id := MatchManager.active_player_id
+	var data := MarblePoolManager.get_marble()
+	var color := Color.RED if shooter_id == 1 else Color.BLUE
+	var pos := _get_shooter_spawn_pos(shooter_id)
+	_shooter_sample_marble = spawn_marble(data, shooter_id, pos, color)
+	_shooter_sample_marble.freeze = true
+
+func _despawn_shooter_sample() -> void:
+	if is_instance_valid(_shooter_sample_marble):
+		_shooter_sample_marble.queue_free()
+	_shooter_sample_marble = null
+
+func _get_shooter_spawn_pos(player_id: int) -> Vector2:
+	var base_angle := PI / 2.0 if player_id == 1 else -PI / 2.0
+	var dist := FIELD_RADIUS + Marble.RADIUS + 8.0
+	return FIELD_CENTER + Vector2(cos(base_angle), sin(base_angle)) * dist
 
 func _setup_boundary_detector() -> void:
 	var boundary := Area2D.new()
@@ -93,10 +171,10 @@ func _setup_boundary_detector() -> void:
 	boundary.monitoring = true
 
 	var shape := CollisionShape2D.new()
-	var rect := RectangleShape2D.new()
-	rect.size = Vector2(FIELD_WIDTH + 60.0, FIELD_HEIGHT + 60.0)
-	shape.shape = rect
-	shape.position = Vector2(FIELD_WIDTH / 2.0, FIELD_HEIGHT / 2.0)
+	var circle := CircleShape2D.new()
+	circle.radius = FIELD_RADIUS + 30.0
+	shape.shape = circle
+	shape.position = FIELD_CENTER
 
 	boundary.add_child(shape)
 	boundary.body_exited.connect(_on_marble_exited_boundary)
@@ -110,3 +188,5 @@ func _on_marble_exited_boundary(body: Node2D) -> void:
 func _exit_tree() -> void:
 	if SignalBus.phase_changed.is_connected(_on_phase_changed_for_camera):
 		SignalBus.phase_changed.disconnect(_on_phase_changed_for_camera)
+	if SignalBus.phase_changed.is_connected(_on_phase_changed_for_shooter_marble):
+		SignalBus.phase_changed.disconnect(_on_phase_changed_for_shooter_marble)

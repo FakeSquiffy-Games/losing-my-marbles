@@ -11,12 +11,6 @@ script = ExtResource("4_wnvii")
 [sub_resource type="RectangleShape2D" id="1_rect"]
 size = Vector2(900, 500)
 
-[sub_resource type="RectangleShape2D" id="h_wall"]
-size = Vector2(900, 12)
-
-[sub_resource type="RectangleShape2D" id="v_wall"]
-size = Vector2(12, 500)
-
 [node name="FieldContainer" type="SubViewportContainer" unique_id=1001455569]
 stretch = true
 
@@ -29,7 +23,9 @@ render_target_update_mode = 4
 script = ExtResource("1_script")
 
 [node name="Camera2D" type="Camera2D" parent="SubViewport/Field" unique_id=91595720]
+unique_name_in_owner = true
 top_level = true
+ignore_rotation = false
 position = Vector2(450, 250)
 
 [node name="PhantomCameraHost" type="Node" parent="SubViewport/Field/Camera2D" unique_id=717903094]
@@ -47,6 +43,7 @@ tween_resource = SubResource("Resource_tcubs")
 metadata/_custom_type_script = "uid://bhexx6mj1xv3q"
 
 [node name="Background" type="ColorRect" parent="SubViewport/Field" unique_id=660430404]
+unique_name_in_owner = true
 offset_right = 900.0
 offset_bottom = 500.0
 color = Color(0.15, 0.2, 0.15, 1)
@@ -59,28 +56,3 @@ gravity_space_override = 3
 position = Vector2(450, 250)
 shape = SubResource("1_rect")
 
-[node name="Walls" type="Node2D" parent="SubViewport/Field" unique_id=1962507899]
-
-[node name="TopWall" type="StaticBody2D" parent="SubViewport/Field/Walls" unique_id=1632860986]
-position = Vector2(450, 6)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="SubViewport/Field/Walls/TopWall" unique_id=1265557940]
-shape = SubResource("h_wall")
-
-[node name="BottomWall" type="StaticBody2D" parent="SubViewport/Field/Walls" unique_id=1038161969]
-position = Vector2(450, 494)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="SubViewport/Field/Walls/BottomWall" unique_id=1319919139]
-shape = SubResource("h_wall")
-
-[node name="LeftWall" type="StaticBody2D" parent="SubViewport/Field/Walls" unique_id=1777237197]
-position = Vector2(6, 250)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="SubViewport/Field/Walls/LeftWall" unique_id=875303832]
-shape = SubResource("v_wall")
-
-[node name="RightWall" type="StaticBody2D" parent="SubViewport/Field/Walls" unique_id=1874293859]
-position = Vector2(894, 250)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="SubViewport/Field/Walls/RightWall" unique_id=861428106]
-shape = SubResource("v_wall")

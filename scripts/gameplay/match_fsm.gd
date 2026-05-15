@@ -40,14 +40,14 @@ func _spawn_initial_marbles() -> void:
 	const MARGIN := 80.0
 
 	var p1_preferred: Array[Vector2] = [
-		Vector2(200, 250),
-		Vector2(200, 250 - MARGIN),
-		Vector2(200, 250 + MARGIN),
+		Vector2(310, 250),
+		Vector2(320, 200),
+		Vector2(320, 300),
 	]
 	var p2_preferred: Array[Vector2] = [
-		Vector2(700, 250),
-		Vector2(700, 250 - MARGIN),
-		Vector2(700, 250 + MARGIN),
+		Vector2(590, 250),
+		Vector2(580, 200),
+		Vector2(580, 300),
 	]
 
 	for i: int in MARBLES_PER_PLAYER:
