@@ -13,6 +13,7 @@ var gravity_magnitude: float = 0.0
 func _ready() -> void:
 	add_to_group("game_field")
 	_apply_gravity()
+	_setup_boundary_detector()
 
 func _apply_gravity() -> void:
 	if _gravity_zone:
@@ -64,3 +65,25 @@ func find_valid_position(preferred: Vector2, radius: float = Marble.RADIUS) -> V
 			return candidate
 
 	return preferred
+
+func _setup_boundary_detector() -> void:
+	var boundary := Area2D.new()
+	boundary.name = "BoundaryDetector"
+	boundary.collision_layer = 0
+	boundary.collision_mask = 1
+	boundary.monitoring = true
+
+	var shape := CollisionShape2D.new()
+	var rect := RectangleShape2D.new()
+	rect.size = Vector2(FIELD_WIDTH + 60.0, FIELD_HEIGHT + 60.0)
+	shape.shape = rect
+	shape.position = Vector2(FIELD_WIDTH / 2.0, FIELD_HEIGHT / 2.0)
+
+	boundary.add_child(shape)
+	boundary.body_exited.connect(_on_marble_exited_boundary)
+	add_child(boundary)
+
+func _on_marble_exited_boundary(body: Node2D) -> void:
+	if body is Marble:
+		print("[Field] Marble exited boundary — player=%d" % body.owner_player_id)
+		SignalBus.marble_exited_boundary.emit(body as Marble)

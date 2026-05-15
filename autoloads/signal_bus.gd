@@ -22,3 +22,6 @@ signal phase_changed(phase: int)
 signal phase_advance_requested(event: String)
 signal turn_changed(player_id: int)
 signal device_passed(next_player_id: int)
+
+# -- Field & marble events --
+signal marble_exited_boundary(marble: Marble)
