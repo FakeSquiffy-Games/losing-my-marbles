@@ -5,8 +5,13 @@ const FIELD_HEIGHT: float = 500.0
 const WALL_THICKNESS: float = 12.0
 const MARBLE_SCENE := preload("res://scenes/gameplay/marble.tscn")
 
-@onready var _gravity_zone: Area2D = %GravityZone
+const SHOOTER_FOCUS_PRIORITY: int = 20
+const BOARD_OVERVIEW_PRIORITY: int = 10
 
+@onready var _gravity_zone: Area2D = %GravityZone
+@onready var _board_cam: PhantomCamera2D = %BoardOverviewCamera
+
+var _shooter_cam: PhantomCamera2D
 var gravity_direction: Vector2 = Vector2.ZERO
 var gravity_magnitude: float = 0.0
 
@@ -14,6 +19,8 @@ func _ready() -> void:
 	add_to_group("game_field")
 	_apply_gravity()
 	_setup_boundary_detector()
+	_setup_shooter_camera()
+	SignalBus.phase_changed.connect(_on_phase_changed_for_camera)
 
 func _apply_gravity() -> void:
 	if _gravity_zone:
@@ -66,6 +73,18 @@ func find_valid_position(preferred: Vector2, radius: float = Marble.RADIUS) -> V
 
 	return preferred
 
+func _setup_shooter_camera() -> void:
+	_shooter_cam = PhantomCamera2D.new()
+	_shooter_cam.name = "ShooterFocusCamera"
+	_shooter_cam.position = Vector2(FIELD_WIDTH / 2.0, FIELD_HEIGHT / 2.0)
+	_shooter_cam.priority = 0
+	add_child(_shooter_cam)
+
+func _on_phase_changed_for_camera(phase: int) -> void:
+	var match_phase: Enums.MatchState = phase as Enums.MatchState
+	var is_aiming := match_phase == Enums.MatchState.AIM or match_phase == Enums.MatchState.SIMULATING
+	_shooter_cam.set_priority(SHOOTER_FOCUS_PRIORITY if is_aiming else 0)
+
 func _setup_boundary_detector() -> void:
 	var boundary := Area2D.new()
 	boundary.name = "BoundaryDetector"
@@ -87,3 +106,7 @@ func _on_marble_exited_boundary(body: Node2D) -> void:
 	if body is Marble:
 		print("[Field] Marble exited boundary — player=%d" % body.owner_player_id)
 		SignalBus.marble_exited_boundary.emit(body as Marble)
+
+func _exit_tree() -> void:
+	if SignalBus.phase_changed.is_connected(_on_phase_changed_for_camera):
+		SignalBus.phase_changed.disconnect(_on_phase_changed_for_camera)
