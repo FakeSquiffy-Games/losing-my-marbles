@@ -1,6 +1,6 @@
 extends Control
 
-const MATCH_FSM_SCENE := preload("res://scenes/match_fsm.tscn")
+const MATCH_FSM_SCENE := preload("res://scenes/gameplay/match_fsm.tscn")
 const PASS_DEVICE_SCENE := preload("res://scenes/ui/pass_device.tscn")
 
 @onready var _phase_label: Label = %PhaseLabel

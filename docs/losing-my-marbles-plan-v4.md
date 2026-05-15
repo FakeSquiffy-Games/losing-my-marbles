@@ -65,7 +65,7 @@ When a phase implements an FSM state that depends on data or logic deferred to a
 | **Godot State Charts** | Match FSM | Server-side only; clients receive state enum via RPC |
 | **Card Framework 1.3.3** | UI / Card rendering | Replaces custom dragging logic; manages Hand and Pile UI |
 | **Phantom Camera (v0.6+)** | Camera Management | Manages transitions between Field Overview and Flick Aim views via `priority` swapping |
-| **YARD (Yet Another Resource DB)** | Data Querying | Creates a fast, searchable index of `.tres` card resources; replaces manual directory parsing for the Deck Builder |
+| *(removed)* | | YARD was evaluated and removed due to resource-loading compatibility issues. DirAccess is used instead. |
 | **GUT 9.6.0** | Unit & integration tests | Deferred to Phase 6 (Polish) |
 | **GDScript Linter** | Static code quality | Active from Phase 0; warnings-only (`Exit 1`) during Phases 0–5; strict mode (`Exit 2`) in Phase 6 |
 
@@ -113,9 +113,10 @@ Each phase builds one functional pillar of the game. **Do not advance to the nex
 - Create the standard directory layout: `scenes/`, `scripts/`, `resources/`, `assets/`, `autoloads/`, `addons/`, `test/`.
 - Install and configure the **GDScript Linter** in warnings-only mode (`Exit 1`).
 
-#### 0.2 Plugin Installation
-- Install **YARD** and configure the Card Registry to index `res://resources/cards/`.
-- Confirm YARD can list resources by type from the registry (smoke test).
+#### 0.2 Resource Directory Setup
+- Confirm all `.tres` resource files reside in `res://resources/cards/` and `res://resources/characters/`.
+- Verify that `DirAccess` can enumerate and `load()` all `.tres` files in both directories without errors.
+- The `CardLibrary` helper loads resources via `DirAccess` directory traversal (no plugin dependency).
 
 #### 0.3 Enum Definitions
 Define the following enums in a shared `Enums.gd` autoload (or top-level constants file) so they are accessible project-wide without circular dependencies:
@@ -247,7 +248,7 @@ extends Resource
 - Selection is sent to the server via RPC; server confirms and locks in both players' selections before proceeding.
 
 #### 1.4 Deck Builder UI
-- Uses YARD queries to populate the available card pool.
+- Uses `CardLibrary` (`DirAccess` directory traversal) to populate the available card pool.
 - Two separate builder modes in one scene:
   - **Private Deck:** Player assembles a deck from all available card types for their selected character.
   - **Public Marble Pool:** Player fills a fixed-size pool exclusively with owned Marble cards.

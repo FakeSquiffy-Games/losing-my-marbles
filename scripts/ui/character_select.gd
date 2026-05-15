@@ -1,6 +1,5 @@
 extends Control
 
-const CHARACTER_DIR := "res://resources/characters/"
 const PASS_DEVICE_SCENE := preload("res://scenes/ui/pass_device.tscn")
 
 @onready var _character_container: HBoxContainer = %CharacterContainer
@@ -8,6 +7,7 @@ const PASS_DEVICE_SCENE := preload("res://scenes/ui/pass_device.tscn")
 @onready var _status_label: Label = %StatusLabel
 @onready var _back_button: Button = %BackButton
 
+var _library: CardLibrary
 var _characters: Array[CharacterData] = []
 var _character_cards: Array[Control] = []
 var _selected_index: int = -1
@@ -19,24 +19,12 @@ func _ready() -> void:
 	_back_button.pressed.connect(_on_back_pressed)
 	SignalBus.match_started.connect(_on_match_started)
 	SignalBus.device_passed.connect(_on_device_passed)
-	_load_characters()
+
+	_library = CardLibrary.new()
+	_library.load_characters()
+	_characters = _library.characters
+
 	_populate_ui()
-
-func _load_characters() -> void:
-	var dir := DirAccess.open(CHARACTER_DIR)
-	if dir == null:
-		push_error("Cannot open character directory: ", CHARACTER_DIR)
-		return
-
-	dir.list_dir_begin()
-	var file_name := dir.get_next()
-	while file_name != "":
-		if file_name.ends_with(".tres"):
-			var resource := load(CHARACTER_DIR + file_name) as CharacterData
-			if resource:
-				_characters.append(resource)
-		file_name = dir.get_next()
-	dir.list_dir_end()
 
 func _populate_ui() -> void:
 	for char_data in _characters:
@@ -52,7 +40,8 @@ func _create_character_card(data: CharacterData) -> Control:
 	card.add_child(vbox)
 
 	var name_label := Label.new()
-	name_label.text = data.resource_name if data.resource_name else data.resource_path.get_file().trim_suffix(".tres")
+	var display_name := data.character_name if data.character_name else data.resource_path.get_file().trim_suffix(".tres")
+	name_label.text = display_name
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(name_label)
 

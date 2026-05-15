@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://buic5a5c3jtlm"]
 
-[ext_resource type="Script" uid="uid://diwisxl1ucnsq" path="res://scripts/field.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://diwisxl1ucnsq" path="res://scripts/gameplay/field.gd" id="1_script"]
 [ext_resource type="Script" uid="uid://bd046eokvcnu2" path="res://addons/phantom_camera/scripts/phantom_camera_host/phantom_camera_host.gd" id="2_7156t"]
 [ext_resource type="Script" uid="uid://bhexx6mj1xv3q" path="res://addons/phantom_camera/scripts/phantom_camera/phantom_camera_2d.gd" id="3_pn4dk"]
 [ext_resource type="Script" uid="uid://8umksf8e80fw" path="res://addons/phantom_camera/scripts/resources/tween_resource.gd" id="4_wnvii"]

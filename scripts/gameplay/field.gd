@@ -3,7 +3,7 @@ extends Node2D
 const FIELD_WIDTH: float = 900.0
 const FIELD_HEIGHT: float = 500.0
 const WALL_THICKNESS: float = 12.0
-const MARBLE_SCENE := preload("res://scenes/marble.tscn")
+const MARBLE_SCENE := preload("res://scenes/gameplay/marble.tscn")
 
 @onready var _gravity_zone: Area2D = %GravityZone
 
