@@ -3,10 +3,10 @@ extends Control
 const MATCH_FSM_SCENE := preload("res://scenes/gameplay/match_fsm.tscn")
 const PASS_DEVICE_SCENE := preload("res://scenes/ui/pass_device.tscn")
 
-const AIM_ROTATION_MIN: float = -90.0
-const AIM_ROTATION_MAX: float = 90.0
 const AIM_FLICK_MIN: float = 0.0
 const AIM_FLICK_MAX: float = 10.0
+const ROTATION_SPEED: float = 120.0
+const FINE_TUNE_SPEED: float = 60.0
 
 @onready var _phase_label: Label = %PhaseLabel
 @onready var _turn_label: Label = %TurnLabel
@@ -22,12 +22,20 @@ const AIM_FLICK_MAX: float = 10.0
 
 var _fsm: StateChart
 var _aim_controls: HBoxContainer
-var _rotation_slider: HSlider
-var _flick_slider: HSlider
+var _rotate_left_button: Button
+var _rotate_right_button: Button
 var _rotation_label: Label
+var _fine_tune_left_button: Button
+var _fine_tune_right_button: Button
+var _fine_tune_label: Label
+var _flick_slider: HSlider
 var _flick_label: Label
 var _flick_value: float = 0.0
 var _rotation_value: float = 0.0
+var _rotating_direction: int = 0
+var _fine_tune_value: float = 0.0
+var _fine_tune_direction: int = 0
+var _last_emitted_total: float = -INF
 
 func _ready() -> void:
 	_ready_button.pressed.connect(_on_ready_pressed)
@@ -54,6 +62,29 @@ func _ready() -> void:
 	_fsm.send_event.call_deferred("begin")
 	print("[Match] send_event('begin') scheduled via call_deferred")
 
+func _process(delta: float) -> void:
+	var changed := false
+
+	if _rotating_direction != 0:
+		_rotation_value += ROTATION_SPEED * delta * _rotating_direction
+		_rotation_label.text = "Field: %.0f" % _rotation_value
+		_apply_map_rotation()
+		changed = true
+
+	if _fine_tune_direction != 0:
+		_fine_tune_value += FINE_TUNE_SPEED * delta * _fine_tune_direction
+		_fine_tune_label.text = "Aim: %.0f" % _fine_tune_value
+		changed = true
+
+	if changed:
+		_emit_aim_if_changed()
+
+func _emit_aim_if_changed() -> void:
+	var total := _rotation_value + _fine_tune_value
+	if abs(total - _last_emitted_total) > 0.5:
+		_last_emitted_total = total
+		SignalBus.aim_inputs_changed.emit(total, _flick_value)
+
 func _build_aim_controls() -> void:
 	_aim_controls = HBoxContainer.new()
 	_aim_controls.name = "AimControls"
@@ -61,22 +92,66 @@ func _build_aim_controls() -> void:
 	_aim_controls.alignment = BoxContainer.ALIGNMENT_CENTER
 	_aim_controls.add_theme_constant_override("separation", 20)
 
-	var rotation_group := _make_labeled_slider("Map Rotation", AIM_ROTATION_MIN, AIM_ROTATION_MAX, 0.0)
-	_rotation_label = rotation_group.get_child(0) as Label
-	_rotation_slider = rotation_group.get_child(1) as HSlider
-	_rotation_slider.value_changed.connect(_on_rotation_changed)
+	# Field rotation group
+	var rotation_group := VBoxContainer.new()
+	_rotation_label = Label.new()
+	_rotation_label.text = "Field: 0"
+	_rotation_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 
+	var rotation_buttons := _make_button_pair(_on_rotate_left_down, _on_rotate_right_down, _on_rotate_up)
+	_rotate_left_button = rotation_buttons.get_child(0) as Button
+	_rotate_right_button = rotation_buttons.get_child(1) as Button
+
+	rotation_group.add_child(_rotation_label)
+	rotation_group.add_child(rotation_buttons)
+
+	# Fine-tune aim group
+	var fine_tune_group := VBoxContainer.new()
+	_fine_tune_label = Label.new()
+	_fine_tune_label.text = "Aim: 0"
+	_fine_tune_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+
+	var fine_tune_buttons := _make_button_pair(_on_fine_tune_left_down, _on_fine_tune_right_down, _on_fine_tune_up)
+	_fine_tune_left_button = fine_tune_buttons.get_child(0) as Button
+	_fine_tune_right_button = fine_tune_buttons.get_child(1) as Button
+
+	fine_tune_group.add_child(_fine_tune_label)
+	fine_tune_group.add_child(fine_tune_buttons)
+
+	# Flick group
 	var flick_group := _make_labeled_slider("Flick Power", AIM_FLICK_MIN, AIM_FLICK_MAX, 0.0)
 	_flick_label = flick_group.get_child(0) as Label
 	_flick_slider = flick_group.get_child(1) as HSlider
 	_flick_slider.value_changed.connect(_on_flick_changed)
 
 	_aim_controls.add_child(rotation_group)
+	_aim_controls.add_child(fine_tune_group)
 	_aim_controls.add_child(flick_group)
 
 	var hud := $HUDContainer
 	hud.add_child(_aim_controls)
 	hud.move_child(_aim_controls, hud.get_child_count() - 2)
+
+func _make_button_pair(on_left_down: Callable, on_right_down: Callable, on_up: Callable) -> HBoxContainer:
+	var container := HBoxContainer.new()
+	container.alignment = BoxContainer.ALIGNMENT_CENTER
+	container.add_theme_constant_override("separation", 8)
+
+	var left := Button.new()
+	left.text = "<"
+	left.custom_minimum_size = Vector2(40, 0)
+	left.button_down.connect(on_left_down)
+	left.button_up.connect(on_up)
+
+	var right := Button.new()
+	right.text = ">"
+	right.custom_minimum_size = Vector2(40, 0)
+	right.button_down.connect(on_right_down)
+	right.button_up.connect(on_up)
+
+	container.add_child(left)
+	container.add_child(right)
+	return container
 
 func _make_labeled_slider(label_text: String, min_val: float, max_val: float, default_val: float) -> VBoxContainer:
 	var container := VBoxContainer.new()
@@ -95,14 +170,28 @@ func _make_labeled_slider(label_text: String, min_val: float, max_val: float, de
 	container.add_child(slider)
 	return container
 
-func _on_rotation_changed(value: float) -> void:
-	_rotation_label.text = "Map Rotation: %.1f°" % value
-	_rotation_value = value
-	_apply_map_rotation()
+func _on_rotate_left_down() -> void:
+	_rotating_direction = -1
+
+func _on_rotate_right_down() -> void:
+	_rotating_direction = 1
+
+func _on_rotate_up() -> void:
+	_rotating_direction = 0
+
+func _on_fine_tune_left_down() -> void:
+	_fine_tune_direction = -1
+
+func _on_fine_tune_right_down() -> void:
+	_fine_tune_direction = 1
+
+func _on_fine_tune_up() -> void:
+	_fine_tune_direction = 0
 
 func _on_flick_changed(value: float) -> void:
 	_flick_label.text = "Flick Power: %.1f" % value
 	_flick_value = value
+	SignalBus.aim_inputs_changed.emit(_rotation_value + _fine_tune_value, _flick_value)
 
 func _apply_map_rotation() -> void:
 	var field_node := _get_field_node()
@@ -174,11 +263,14 @@ func _show_phase_buttons() -> void:
 	_execute_button.disabled = not is_active
 	_aim_back_button.disabled = not is_active
 
-	_rotation_slider.editable = is_active
+	_rotate_left_button.disabled = not is_active
+	_rotate_right_button.disabled = not is_active
+	_fine_tune_left_button.disabled = not is_active
+	_fine_tune_right_button.disabled = not is_active
 	_flick_slider.editable = is_active
 
 	if phase == Enums.MatchState.AIM and is_server_ok:
-		_reset_aim_sliders()
+		_reset_aim_controls()
 
 	if phase == Enums.MatchState.END_TURN and multiplayer.is_server():
 		if NetworkManager.session_key == "OFFLINE":
@@ -190,8 +282,12 @@ func _show_phase_buttons() -> void:
 			MatchManager.set_active_player(MatchManager.get_opponent_id())
 			_fsm.send_event("next_turn")
 
-func _reset_aim_sliders() -> void:
-	_rotation_slider.value = 0.0
+func _reset_aim_controls() -> void:
+	_rotation_value = 0.0
+	_fine_tune_value = 0.0
+	_last_emitted_total = -INF
+	_rotation_label.text = "Field: 0"
+	_fine_tune_label.text = "Aim: 0"
 	_flick_slider.value = 0.0
 
 func _disable_buttons() -> void:

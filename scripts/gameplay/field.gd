@@ -15,6 +15,7 @@ const BOARD_OVERVIEW_PRIORITY: int = 10
 
 var _shooter_cam: PhantomCamera2D
 var _shooter_sample_marble: Marble = null
+var _trajectory_preview: TrajectoryPreview
 var gravity_direction: Vector2 = Vector2.ZERO
 var gravity_magnitude: float = 0.0
 
@@ -25,6 +26,7 @@ func _ready() -> void:
 	_update_gravity_shape()
 	_setup_boundary_detector()
 	_setup_shooter_camera()
+	_setup_trajectory_preview()
 	$Camera2D.ignore_rotation = false
 	_background.visible = false
 	queue_redraw()
@@ -90,6 +92,13 @@ func set_map_rotation(degrees: float) -> void:
 	_board_cam.rotation_degrees = degrees
 	if _shooter_cam:
 		_shooter_cam.rotation_degrees = degrees
+	_update_shooter_marble_position(degrees)
+
+func _update_shooter_marble_position(degrees: float) -> void:
+	if not is_instance_valid(_shooter_sample_marble):
+		return
+	var dist := FIELD_RADIUS + Marble.RADIUS + 12.0
+	_shooter_sample_marble.position = FIELD_CENTER + Vector2.RIGHT.rotated(deg_to_rad(degrees)) * dist
 
 func find_valid_position(preferred: Vector2, radius: float = Marble.RADIUS) -> Vector2:
 	var space_state := get_world_2d().direct_space_state
@@ -159,9 +168,25 @@ func _despawn_shooter_sample() -> void:
 	_shooter_sample_marble = null
 
 func _get_shooter_spawn_pos(player_id: int) -> Vector2:
-	var base_angle := PI / 2.0 if player_id == 1 else -PI / 2.0
-	var dist := FIELD_RADIUS + Marble.RADIUS + 8.0
-	return FIELD_CENTER + Vector2(cos(base_angle), sin(base_angle)) * dist
+	var dist := FIELD_RADIUS + Marble.RADIUS + 12.0
+	return FIELD_CENTER + Vector2.RIGHT * dist
+
+func get_shooter_position() -> Vector2:
+	if is_instance_valid(_shooter_sample_marble):
+		return _shooter_sample_marble.position
+	return Vector2.ZERO
+
+func get_field_marble_positions() -> Array[Vector2]:
+	var positions: Array[Vector2] = []
+	for node in get_tree().get_nodes_in_group("field_marbles"):
+		if node is Marble and node != _shooter_sample_marble:
+			positions.append((node as Node2D).position)
+	return positions
+
+func _setup_trajectory_preview() -> void:
+	_trajectory_preview = TrajectoryPreview.new()
+	_trajectory_preview.name = "TrajectoryPreview"
+	add_child(_trajectory_preview)
 
 func _setup_boundary_detector() -> void:
 	var boundary := Area2D.new()
