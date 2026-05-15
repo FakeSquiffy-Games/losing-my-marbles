@@ -35,16 +35,29 @@ func _spawn_initial_marbles() -> void:
 		print("[FSM] No game_field found for spawning")
 		return
 
-	var field := fields[0]
-	var default_marble := load("res://resources/cards/marble_standard.tres") as MarbleData
+	var field := fields[0] as Node2D
+	const MARBLES_PER_PLAYER := 3
+	const MARGIN := 80.0
 
-	field.spawn_marble(default_marble, 1, Vector2(150, 250), Color.RED)
-	field.spawn_marble(default_marble, 1, Vector2(200, 180), Color.RED)
-	field.spawn_marble(default_marble, 1, Vector2(200, 320), Color.RED)
+	var p1_preferred: Array[Vector2] = [
+		Vector2(200, 250),
+		Vector2(200, 250 - MARGIN),
+		Vector2(200, 250 + MARGIN),
+	]
+	var p2_preferred: Array[Vector2] = [
+		Vector2(700, 250),
+		Vector2(700, 250 - MARGIN),
+		Vector2(700, 250 + MARGIN),
+	]
 
-	field.spawn_marble(default_marble, 2, Vector2(750, 250), Color.BLUE)
-	field.spawn_marble(default_marble, 2, Vector2(700, 180), Color.BLUE)
-	field.spawn_marble(default_marble, 2, Vector2(700, 320), Color.BLUE)
+	for i: int in MARBLES_PER_PLAYER:
+		var marble_data := MarblePoolManager.get_marble()
+		var pos_p1: Vector2 = field.find_valid_position(p1_preferred[i])
+		field.spawn_marble(marble_data, 1, pos_p1, Color.RED)
+
+		var marble_data2 := MarblePoolManager.get_marble()
+		var pos_p2: Vector2 = field.find_valid_position(p2_preferred[i])
+		field.spawn_marble(marble_data2, 2, pos_p2, Color.BLUE)
 
 	print("[FSM] Initial marbles spawned")
 	FieldStateManager._push_to_field()
