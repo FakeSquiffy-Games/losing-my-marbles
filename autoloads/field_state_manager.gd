@@ -14,32 +14,32 @@ func _ready() -> void:
 		"gravity_direction": DEFAULT_GRAVITY_DIRECTION,
 		"linear_damp": DEFAULT_LINEAR_DAMP,
 	}
-	call_deferred("_push_to_field")
+	call_deferred("recalculate")
 
 func apply_map_base(properties: Dictionary) -> void:
 	for key in properties:
 		_map_base[key] = properties[key]
-	_push_to_field()
+	recalculate()
 
 func set_terrain_delta(key: String, value: Variant) -> void:
 	_terrain_delta[key] = value
-	_push_to_field()
+	recalculate()
 
 func clear_terrain_delta(key: String) -> void:
 	_terrain_delta.erase(key)
-	_push_to_field()
+	recalculate()
 
 func add_aoe_delta(delta: Dictionary, turns_remaining: int = 0) -> int:
 	var idx := _aoe_deltas.size()
 	delta["turns_remaining"] = turns_remaining
 	_aoe_deltas.append(delta)
-	_push_to_field()
+	recalculate()
 	return idx
 
 func remove_aoe_delta(idx: int) -> void:
 	if idx >= 0 and idx < _aoe_deltas.size():
 		_aoe_deltas.remove_at(idx)
-		_push_to_field()
+		recalculate()
 
 func tick_aoe_durations() -> void:
 	var changed := false
@@ -53,9 +53,26 @@ func tick_aoe_durations() -> void:
 			changed = true
 		i -= 1
 	if changed:
-		_push_to_field()
+		recalculate()
 
-func _get_effective() -> Dictionary:
+func recalculate() -> void:
+	var effective := _compute_effective()
+	push_to_engine(effective)
+
+func push_to_engine(effective: Dictionary) -> void:
+	var fields := get_tree().get_nodes_in_group("game_field")
+	if fields.is_empty():
+		return
+
+	var field := fields[0]
+	var gravity_dir: Vector2 = effective.get("gravity_direction", DEFAULT_GRAVITY_DIRECTION)
+	var gravity_mag: float = effective.get("gravity_magnitude", DEFAULT_GRAVITY_MAGNITUDE)
+	var damp: float = effective.get("linear_damp", DEFAULT_LINEAR_DAMP)
+
+	field.set_gravity(gravity_dir, gravity_mag)
+	field.set_linear_damp(damp)
+
+func _compute_effective() -> Dictionary:
 	var result := _map_base.duplicate()
 	for key in _terrain_delta:
 		if result.has(key):
@@ -69,18 +86,3 @@ func _get_effective() -> Dictionary:
 			else:
 				result[key] = aoe[key]
 	return result
-
-func _push_to_field() -> void:
-	var fields := get_tree().get_nodes_in_group("game_field")
-	if fields.is_empty():
-		return
-
-	var field := fields[0]
-	var effective := _get_effective()
-
-	var gravity_dir: Vector2 = effective.get("gravity_direction", DEFAULT_GRAVITY_DIRECTION)
-	var gravity_mag: float = effective.get("gravity_magnitude", DEFAULT_GRAVITY_MAGNITUDE)
-	var damp: float = effective.get("linear_damp", DEFAULT_LINEAR_DAMP)
-
-	field.set_gravity(gravity_dir, gravity_mag)
-	field.set_linear_damp(damp)

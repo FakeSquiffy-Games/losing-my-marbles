@@ -60,7 +60,7 @@ func _spawn_initial_marbles() -> void:
 		field.spawn_marble(marble_data2, 2, pos_p2, Color.BLUE)
 
 	print("[FSM] Initial marbles spawned")
-	FieldStateManager._push_to_field()
+	FieldStateManager.recalculate()
 
 func _on_draw_entered() -> void:
 	print("[FSM] >>> Draw state ENTERED — calling MatchManager.set_phase(DRAW)")
