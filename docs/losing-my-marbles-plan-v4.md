@@ -65,7 +65,6 @@ When a phase implements an FSM state that depends on data or logic deferred to a
 | **Godot State Charts** | Match FSM | Server-side only; clients receive state enum via RPC |
 | **Card Framework 1.3.3** | UI / Card rendering | Replaces custom dragging logic; manages Hand and Pile UI |
 | **Phantom Camera (v0.6+)** | Camera Management | Manages transitions between Field Overview and Flick Aim views via `priority` swapping |
-| *(removed)* | | YARD was evaluated and removed due to resource-loading compatibility issues. DirAccess is used instead. |
 | **GUT 9.6.0** | Unit & integration tests | Deferred to Phase 6 (Polish) |
 | **GDScript Linter** | Static code quality | Active from Phase 0; warnings-only (`Exit 1`) during Phases 0–5; strict mode (`Exit 2`) in Phase 6 |
 
