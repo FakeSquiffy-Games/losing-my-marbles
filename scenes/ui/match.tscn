@@ -1,7 +1,7 @@
-[gd_scene load_steps=3 format=3 uid="uid://ciuun2pvc63qs"]
+[gd_scene format=3 uid="uid://ciuun2pvc63qs"]
 
 [ext_resource type="Script" uid="uid://bfi2aawhgj4fn" path="res://scripts/ui/match.gd" id="1_script"]
-[ext_resource type="PackedScene" path="res://scenes/field.tscn" id="2_field"]
+[ext_resource type="PackedScene" uid="uid://buic5a5c3jtlm" path="res://scenes/gameplay/field.tscn" id="2_field"]
 
 [node name="Match" type="Control" unique_id=1521104756]
 layout_mode = 3
@@ -66,6 +66,18 @@ unique_name_in_owner = true
 visible = false
 layout_mode = 2
 text = "Aim"
+
+[node name="ExecuteButton" type="Button" parent="HUDContainer/ButtonBar" unique_id=2204193857]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "Execute Shot"
+
+[node name="AimBackButton" type="Button" parent="HUDContainer/ButtonBar" unique_id=3729561102]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "Back"
 
 [node name="EndTurnButton" type="Button" parent="HUDContainer/ButtonBar" unique_id=294282204]
 unique_name_in_owner = true

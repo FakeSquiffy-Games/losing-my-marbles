@@ -11,6 +11,8 @@ const PASS_DEVICE_SCENE := preload("res://scenes/ui/pass_device.tscn")
 @onready var _ready_button: Button = %ReadyButton
 @onready var _aim_button: Button = %AimButton
 @onready var _end_turn_button: Button = %EndTurnButton
+@onready var _execute_button: Button = %ExecuteButton
+@onready var _aim_back_button: Button = %AimBackButton
 @onready var _back_button: Button = %BackButton
 
 var _fsm: StateChart
@@ -19,6 +21,8 @@ func _ready() -> void:
 	_ready_button.pressed.connect(_on_ready_pressed)
 	_aim_button.pressed.connect(_on_aim_pressed)
 	_end_turn_button.pressed.connect(_on_end_turn_pressed)
+	_execute_button.pressed.connect(_on_execute_pressed)
+	_aim_back_button.pressed.connect(_on_aim_back_pressed)
 	_back_button.pressed.connect(_on_back_pressed)
 
 	SignalBus.phase_changed.connect(_on_phase_changed)
@@ -55,6 +59,12 @@ func _on_aim_pressed() -> void:
 func _on_end_turn_pressed() -> void:
 	_fsm.send_event("end_turn")
 
+func _on_execute_pressed() -> void:
+	_fsm.send_event("shoot")
+
+func _on_aim_back_pressed() -> void:
+	_fsm.send_event("back")
+
 func _on_device_passed(next_player_id: int) -> void:
 	if MatchManager.current_phase != Enums.MatchState.END_TURN:
 		return
@@ -86,10 +96,14 @@ func _show_phase_buttons() -> void:
 	_ready_button.visible = phase == Enums.MatchState.DRAW and is_server_ok
 	_aim_button.visible = phase == Enums.MatchState.PLAY and is_server_ok
 	_end_turn_button.visible = phase == Enums.MatchState.PLAY and is_server_ok
+	_execute_button.visible = phase == Enums.MatchState.AIM and is_server_ok
+	_aim_back_button.visible = phase == Enums.MatchState.AIM and is_server_ok
 
 	_ready_button.disabled = not is_active
 	_aim_button.disabled = not is_active
 	_end_turn_button.disabled = not is_active
+	_execute_button.disabled = not is_active
+	_aim_back_button.disabled = not is_active
 
 	if phase == Enums.MatchState.END_TURN and multiplayer.is_server():
 		if NetworkManager.session_key == "OFFLINE":
@@ -105,6 +119,8 @@ func _disable_buttons() -> void:
 	_ready_button.disabled = true
 	_aim_button.disabled = true
 	_end_turn_button.disabled = true
+	_execute_button.disabled = true
+	_aim_back_button.disabled = true
 
 func _phase_name(phase: Enums.MatchState) -> String:
 	match phase:

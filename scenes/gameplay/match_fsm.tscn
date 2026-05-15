@@ -69,6 +69,13 @@ event = &"shoot"
 delay_in_seconds = "0.0"
 metadata/_custom_type_script = "uid://cf1nsco3w0mf6"
 
+[node name="ToPlayFromAim" type="Node" parent="RootState/Aim" unique_id=3128579461]
+script = ExtResource("4_wgjvw")
+to = NodePath("../../Play")
+event = &"back"
+delay_in_seconds = "0.0"
+metadata/_custom_type_script = "uid://cf1nsco3w0mf6"
+
 [node name="Simulating" type="Node" parent="RootState" unique_id=1204950910]
 unique_name_in_owner = true
 script = ExtResource("3_yu274")
