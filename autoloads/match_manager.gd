@@ -3,6 +3,10 @@ extends Node
 var current_phase: Enums.MatchState = Enums.MatchState.INIT
 var active_player_id: int = 1
 var turn_number: int = 0
+var marble_played: bool = false
+var active_shooter_id: int = 0
+var knockouts_this_turn: int = 0
+var turn_order: Array[int] = []
 
 var player_health: Dictionary = {}
 var player_mana: Dictionary = {}
@@ -36,6 +40,34 @@ func get_opponent_id() -> int:
 
 func is_server() -> bool:
 	return multiplayer.is_server()
+
+func set_marble_played() -> void:
+	marble_played = true
+
+func reset_marble_played() -> void:
+	marble_played = false
+
+func set_active_shooter(player_id: int) -> void:
+	active_shooter_id = player_id
+
+func increment_knockout() -> void:
+	knockouts_this_turn += 1
+
+func reset_knockouts() -> void:
+	knockouts_this_turn = 0
+
+func set_turn_order(order: Array[int]) -> void:
+	turn_order = order
+
+@rpc("any_peer", "call_local", "reliable")
+func _request_phase_advance(requested_event: String) -> void:
+	if not multiplayer.is_server():
+		return
+	var sender_id: int = multiplayer.get_remote_sender_id()
+	if sender_id != active_player_id:
+		push_warning("Phase advance request from non-active player: ", sender_id)
+		return
+	SignalBus.phase_advance_requested.emit(requested_event)
 
 func _on_character_selected(player_id: int, character: CharacterData) -> void:
 	player_characters[player_id] = character

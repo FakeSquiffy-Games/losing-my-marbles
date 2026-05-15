@@ -47,9 +47,6 @@ func _on_phase_changed(phase: int) -> void:
 	_update_hud()
 	_show_phase_buttons()
 
-	if phase == Enums.MatchState.DRAW:
-		MatchManager.generate_mana(MatchManager.active_player_id)
-
 func _on_ready_pressed() -> void:
 	_fsm.send_event("ready")
 

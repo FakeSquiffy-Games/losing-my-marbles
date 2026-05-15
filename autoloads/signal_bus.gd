@@ -19,5 +19,6 @@ signal character_selected(player_id: int, character: CharacterData)
 
 # -- Phase transitions --
 signal phase_changed(phase: int)
+signal phase_advance_requested(event: String)
 signal turn_changed(player_id: int)
 signal device_passed(next_player_id: int)
