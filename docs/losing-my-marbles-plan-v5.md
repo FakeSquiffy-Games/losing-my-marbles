@@ -188,7 +188,7 @@ Created: `EffectData.gd`, `PhysicsObjectData.gd`, `CardData.gd`, `MarbleData.gd`
 
 ---
 
-### Phase 3: Field, Aiming, Physics & Simulation ✅ In Progress
+### Phase 3: Field, Aiming, Physics & Simulation ✅ Complete
 
 **Goal:** Circular field, aiming mechanics, Phantom Camera, physics layering, trajectory prediction, shot execution, simulation capture, and marble lifecycle. *(Offline-only verification.)*
 
@@ -219,25 +219,30 @@ Created: `EffectData.gd`, `PhysicsObjectData.gd`, `CardData.gd`, `MarbleData.gd`
 - `_client_marbles` dictionary keyed by server `instance_id`.
 - Provides the injection point for deferred online snapshot replay (Phase 7).
 
-#### 3.9 Marble Lifecycle ⬜ Pending
+#### 3.9 Marble Lifecycle ✅ Done
 - If shooter marble stays on field after simulation → shed "shooter" state, register in shared pool via `return_marble()`.
 - If it exits boundary → despawn (SIMULATION effects do not fire).
-- Verify end-to-end: shot → simulation → lifecycle resolution → next turn in offline mode.
+- Verified end-to-end: shot → simulation → lifecycle resolution → next turn in offline mode.
 
 ---
 
-### Phase 4: Card Framework Integration ⬜ Not Started
+### Phase 4: Card Framework Integration 🔄 In Progress — 4.1 & 4.2 done
 
 **Goal:** Integrate the Card Framework plugin for UI card handling, implement full deck lifecycle (including discard pile), implement one-marble-per-shot constraint, implement public marble pool merge, implement contextual phase buttons with animations, and enable card play validation. *(Offline-only; authority-guarded RPC methods serve as the online injection skeleton.)*
 
-#### 4.1 Card Framework Setup
-- Install **Card Framework 1.3.3**.
-- Write a `CardFactory.gd` utility: given a `CardData` resource, instantiate the appropriate Card Framework UI card, bind its data (name, mana cost, effects preview), and return it as a node ready for placement in the Hand UI.
+#### 4.1 Card Framework Setup ✅ Done
+- Installed **Card Framework 1.3.3**.
+- Created `CardDataFactory` (extends `CardFactory`, scene `card_data_factory.tscn`): bridges `CardData` resources to plugin `Card` nodes via `create_card_from_data(card_data, container)`.
+- Factory generates card textures programmatically (no texture assets needed) using `FontFile` for card face rendering.
+- No modifications to Card Framework plugin files.
+- CardManager configured in `match.tscn` with `card_size = Vector2(150, 210)` and `card_factory_scene` pointing to `card_data_factory.tscn`.
 
-#### 4.2 Hand UI and Drag-to-Play
-- Implement the Hand UI using Card Framework's Hand and Pile components.
-- Cards are drag-and-drop into the designated "play area."
-- When a card is dragged to the play area, the client sends `_request_play_card(card_id: String)` to the authority for validation.
+#### 4.2 Hand UI and Drag-to-Play ✅ Done
+- **TableFrame architecture:** Hand and PlayArea are children of `TableFrame` (opaque Control, full-rect). On AIM button press, TableFrame slides down (offset_top/bottom tween to viewport height, 0.4s TRANS_QUAD) to reveal the field — "putting cards away" metaphor.
+- **Hand:** Card Framework `Hand` node (`anchor_left=0.5, anchor_right=0.5, offset_left=-300, offset_right=300`) — 600px centered bottom span. Fan spread with rotation and vertical curves.
+- **PlayArea:** Large centered drop zone (`anchor 0.1-0.9 × 0.1-0.72`, unique name `%PlayArea`). `mouse_filter` toggled PASS during PLAY phase, IGNORE otherwise.
+- **Card play detection:** Overrides `move_cards()` (not `on_card_move_done`) in `PlayArea` to emit `card_played` after `super.move_cards()` succeeds. This works because `CardContainer.add_card()` → `_assign_card_to_container()` sets `card.card_container = self` immediately, and `move_cards()` is the public entry point called by `CardManager._on_drag_dropped()`. The `on_card_move_done` callback only fires after tween animations complete, which never happens on drop (cards preserve global position).
+- **Pass Device screen:** Fully opaque `ColorRect` background added to `pass_device.tscn`.
 
 #### 4.3 Card Play Validation
 The authority (host in offline mode) validates every `_request_play_card` request before executing it. Validation logic is structurally identical to online mode: sender check, turn check, mana cost check, one-marble constraint check. RPC annotation is already in place for deferred online injection.
@@ -414,8 +419,8 @@ const SNAPSHOT_REPLAY_INTERVAL: float = float(SNAPSHOT_CAPTURE_INTERVAL_TICKS) /
 | Phase 0 — Scaffolding | ✅ Complete | Editor inspection |
 | Phase 1 — Lobby & Deck | ✅ Complete | Offline + partial online |
 | Phase 2 — Match FSM | ✅ Complete | Offline |
-| Phase 3 — Field & Aiming | 🔄 In Progress (3.1–3.8.1 done, 3.9 pending) | Offline |
-| Phase 4 — Card Framework | ⬜ Not Started | Offline |
+| Phase 3 — Field & Aiming | ✅ Complete | Offline |
+| Phase 4 — Card Framework | 🔄 In Progress (4.1 & 4.2 done) | Offline |
 | Phase 5 — Effects & Multipliers | ⬜ Not Started | Offline |
 | Phase 6 — Polish & Testing | ⬜ Not Started | Offline |
 | Phase 7 — Online Multiplayer | ⬜ Not Started (Deferred) | Host + Client |
