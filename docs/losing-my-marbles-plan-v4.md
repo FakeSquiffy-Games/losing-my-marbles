@@ -94,6 +94,7 @@ The following decisions are finalized. They must not be reversed without a docum
 | D14 | Client Physics Snapshot Relay | During the SIMULATING phase, the server captures marble positions and velocities every 2 physics ticks into a snapshot buffer. When simulation fully resolves, the server transmits the buffer and authoritative final state to clients via one reliable RPC. Clients replay the buffer at the matching interval, interpolating between frames, then apply the authoritative final state to correct drift. No real-time streaming; no client-side physics prediction. |
 | D15 | KNOCKER Resolution | The `KNOCKER` target in `EffectData` resolves to the **player** who is currently the active shooter (i.e., the player whose shot is executing in the SIMULATING phase). This is tracked by `MatchManager` as `active_shooter_id: int` and passed as context to the `EffectHandler` at dispatch time. |
 | D16 | Public Marble Pool Refill | When the shared marble pool is exhausted, all previously ejected or used marbles are returned to the pool and reshuffled. This mirrors the private deck reshuffle behavior. The match never ends due to an empty pool. |
+| D17 | Field Boundary: Visual-Only, No Physical Wall | The field boundary is purely visual (drawn arc). There is no `StaticBody2D` collider at the field perimeter. Marbles freely roll off the field based on their velocity. The `BoundaryDetector` `Area2D` (radius = field_radius + 30px) is the sole mechanism for detecting when a marble has left the field. It tracks bodies via `body_entered` and only emits `marble_exited_boundary` for bodies previously known to be inside, preventing false-positive exit signals from physics transients. This replaces the original "circular wall" design because a physical wall would trap marbles that should exit, contradicting the game's core mechanic of marbles being knocked out of bounds. |
 
 ---
 
@@ -325,10 +326,9 @@ The INIT state requires a populated marble pool to spawn field marbles, but the 
 #### 3.1 Circular Field & Boundary Detection
 - Create the Field scene (`field.gd`, extends `Node2D`) as a circular playing field:
   - **Radius:** 220px, **Center:** (450, 250).
-  - **Circular wall:** `StaticBody2D` + `CollisionPolygon2D` built programmatically from 72 segments (12px thickness), forming an outer ring that marbles bounce off.
-  - **Background:** Drawn via `_draw()` — filled circle + arc outline for the field surface.
-  - **Gravity zone:** `Area2D` with `CircleShape2D` (radius 220), positioned at field center, configured with `gravity_override = true` for `FieldStateManager` control.
-  - **Boundary detector:** A separate `Area2D` (radius = field_radius + 30px overscan) with `body_exited` connected to detect marbles leaving the field. Emits `SignalBus.marble_exited_boundary(marble)` when a `Marble` exits.
+  - **Visual boundary:** Drawn via `_draw()` — filled circle + arc outline (12px thickness) for the field surface. This is purely visual; there is no physical wall. Marbles are free to roll off the field.
+  - **Gravity zone:** `Area2D` with `CircleShape2D` (radius 260), positioned at field center, configured with `gravity_space_override = REPLACE` for `FieldStateManager` control. Covers shooter spawn position and boundary detection zone.
+  - **Boundary detector:** A separate `Area2D` (radius = field_radius + 30px overscan). Tracks bodies that enter via `body_entered` and only emits `SignalBus.marble_exited_boundary(marble)` when a tracked `Marble` exits (prevents false-positives from physics overlap transients). Marbles that leave this zone are considered off-field and should be despawned (D8).
 - `find_valid_position()`: Physics overlap query via `intersect_shape` with golden-angle spiral search (D11), clamping candidates to field bounds. Used for all marble spawns.
 - See `scripts/gameplay/field.gd` for constants and implementation.
 

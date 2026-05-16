@@ -3,7 +3,6 @@ extends Node2D
 const FIELD_RADIUS: float = 220.0
 const FIELD_CENTER: Vector2 = Vector2(450.0, 250.0)
 const WALL_THICKNESS: float = 12.0
-const WALL_SEGMENTS: int = 72
 const MARBLE_SCENE := preload("res://scenes/gameplay/marble.tscn")
 
 const SHOOTER_FOCUS_PRIORITY: int = 20
@@ -17,13 +16,13 @@ const SHOOTER_SPAWN_DIST: float = FIELD_RADIUS - WALL_THICKNESS - Marble.RADIUS 
 var _shooter_cam: PhantomCamera2D
 var _shooter_sample_marble: Marble = null
 var _trajectory_preview: TrajectoryPreview
+var _bodies_inside_boundary: Array[int] = []
 var gravity_direction: Vector2 = Vector2.ZERO
 var gravity_magnitude: float = 0.0
 
 func _ready() -> void:
 	add_to_group("game_field")
 	_apply_gravity()
-	_create_circular_wall()
 	_update_gravity_shape()
 	_setup_boundary_detector()
 	_setup_shooter_camera()
@@ -37,26 +36,6 @@ func _ready() -> void:
 func _draw() -> void:
 	draw_circle(FIELD_CENTER, FIELD_RADIUS, Color(0.15, 0.2, 0.15, 1.0))
 	draw_arc(FIELD_CENTER, FIELD_RADIUS, 0, TAU, 72, Color(0.25, 0.35, 0.25, 1.0), WALL_THICKNESS)
-
-func _create_circular_wall() -> void:
-	var outer := PackedVector2Array()
-	var inner := PackedVector2Array()
-	for i: int in range(WALL_SEGMENTS):
-		var angle := float(i) / WALL_SEGMENTS * TAU
-		outer.append(FIELD_CENTER + Vector2(cos(angle), sin(angle)) * FIELD_RADIUS)
-	for i: int in range(WALL_SEGMENTS):
-		var angle := float(WALL_SEGMENTS - 1 - i) / WALL_SEGMENTS * TAU
-		inner.append(FIELD_CENTER + Vector2(cos(angle), sin(angle)) * (FIELD_RADIUS - WALL_THICKNESS))
-
-	var polygon := outer
-	polygon.append_array(inner)
-
-	var wall_body := StaticBody2D.new()
-	wall_body.name = "CircularWall"
-	var collision := CollisionPolygon2D.new()
-	collision.polygon = polygon
-	wall_body.add_child(collision)
-	add_child(wall_body)
 
 func _update_gravity_shape() -> void:
 	var shape_node := _gravity_zone.get_node_or_null("CollisionShape2D")
@@ -208,13 +187,23 @@ func _setup_boundary_detector() -> void:
 	shape.position = FIELD_CENTER
 
 	boundary.add_child(shape)
-	boundary.body_exited.connect(_on_marble_exited_boundary)
+	boundary.body_entered.connect(_on_body_entered_boundary)
+	boundary.body_exited.connect(_on_body_exited_boundary)
 	add_child(boundary)
 
-func _on_marble_exited_boundary(body: Node2D) -> void:
+func _on_body_entered_boundary(body: Node2D) -> void:
 	if body is Marble:
-		print("[Field] Marble exited boundary — player=%d" % body.owner_player_id)
-		SignalBus.marble_exited_boundary.emit(body as Marble)
+		var id := body.get_instance_id()
+		if id not in _bodies_inside_boundary:
+			_bodies_inside_boundary.append(id)
+
+func _on_body_exited_boundary(body: Node2D) -> void:
+	if body is Marble:
+		var id := body.get_instance_id()
+		if id in _bodies_inside_boundary:
+			_bodies_inside_boundary.erase(id)
+			print("[Field] Marble exited boundary — player=%d" % body.owner_player_id)
+			SignalBus.marble_exited_boundary.emit(body as Marble)
 
 func _exit_tree() -> void:
 	if SignalBus.phase_changed.is_connected(_on_phase_changed_for_camera):
