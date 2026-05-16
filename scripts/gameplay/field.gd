@@ -8,6 +8,12 @@ const MARBLE_SCENE := preload("res://scenes/gameplay/marble.tscn")
 const SHOOTER_FOCUS_PRIORITY: int = 20
 const BOARD_OVERVIEW_PRIORITY: int = 10
 const SHOOTER_SPAWN_DIST: float = FIELD_RADIUS - WALL_THICKNESS - Marble.RADIUS - 2.0
+const SNAPSHOT_TICKS: int = 2
+const SNAPSHOT_INTERVAL: float = 2.0 / 60.0
+const SIMULATION_TIMEOUT: float = 10.0
+const VELOCITY_THRESHOLD: float = 0.5
+const ANGULAR_VELOCITY_THRESHOLD: float = 0.1
+const SLEEP_CHECK_DELAY: float = 0.3
 
 @onready var _background: ColorRect = %Background
 @onready var _gravity_zone: Area2D = %GravityZone
@@ -17,11 +23,16 @@ var _shooter_cam: PhantomCamera2D
 var _shooter_sample_marble: Marble = null
 var _trajectory_preview: TrajectoryPreview
 var _bodies_inside_boundary: Array[int] = []
+var _snapshot_buffer: Array[Dictionary] = []
+var _tick_counter: int = 0
+var _sim_elapsed: float = 0.0
+var _sim_active: bool = false
 var gravity_direction: Vector2 = Vector2.ZERO
 var gravity_magnitude: float = 0.0
 
 func _ready() -> void:
 	add_to_group("game_field")
+	set_physics_process(true)
 	_apply_gravity()
 	_update_gravity_shape()
 	_setup_boundary_detector()
@@ -32,6 +43,7 @@ func _ready() -> void:
 	queue_redraw()
 	SignalBus.phase_changed.connect(_on_phase_changed_for_camera)
 	SignalBus.phase_changed.connect(_on_phase_changed_for_shooter_marble)
+	SignalBus.phase_changed.connect(_on_phase_changed_for_simulation)
 
 func _draw() -> void:
 	draw_circle(FIELD_CENTER, FIELD_RADIUS, Color(0.15, 0.2, 0.15, 1.0))
@@ -205,8 +217,91 @@ func _on_body_exited_boundary(body: Node2D) -> void:
 			print("[Field] Marble exited boundary — player=%d" % body.owner_player_id)
 			SignalBus.marble_exited_boundary.emit(body as Marble)
 
+func _physics_process(delta: float) -> void:
+	if not _sim_active:
+		return
+	if not multiplayer.is_server():
+		return
+
+	_sim_elapsed += delta
+	_tick_counter += 1
+
+	if _tick_counter % SNAPSHOT_TICKS == 0:
+		_capture_snapshot()
+		if _sim_elapsed >= SLEEP_CHECK_DELAY:
+			_check_simulation_complete()
+
+	if _sim_elapsed >= SIMULATION_TIMEOUT:
+		print("[Field] Simulation timeout — forcing completion")
+		_finish_simulation()
+
+func _on_phase_changed_for_simulation(phase: int) -> void:
+	var match_phase := phase as Enums.MatchState
+	if match_phase == Enums.MatchState.SIMULATING:
+		_snapshot_buffer.clear()
+		_tick_counter = 0
+		_sim_elapsed = 0.0
+		_sim_active = true
+		print("[Field] Simulation capture started")
+	elif _sim_active:
+		_sim_active = false
+		print("[Field] Simulation capture stopped — %d snapshots captured" % _snapshot_buffer.size())
+
+func _capture_snapshot() -> void:
+	var frame: Dictionary = {}
+	for body in get_tree().get_nodes_in_group("field_marbles"):
+		if body is RigidBody2D:
+			frame[body.get_instance_id()] = {
+				"pos": body.global_position,
+				"vel": body.linear_velocity,
+				"avel": body.angular_velocity,
+				"pid": (body as Marble).owner_player_id,
+			}
+	_snapshot_buffer.append(frame)
+
+func _check_simulation_complete() -> void:
+	var marbles := get_tree().get_nodes_in_group("field_marbles")
+	if marbles.is_empty():
+		_finish_simulation()
+		return
+
+	for body in marbles:
+		if body is RigidBody2D:
+			if body.linear_velocity.length() >= VELOCITY_THRESHOLD:
+				return
+			if abs(body.angular_velocity) >= ANGULAR_VELOCITY_THRESHOLD:
+				return
+			if not body.sleeping and body.linear_velocity.length() > 0.01:
+				return
+
+	_finish_simulation()
+
+func _finish_simulation() -> void:
+	if not _sim_active:
+		return
+	_sim_active = false
+
+	var final_state: Dictionary = {}
+	for body in get_tree().get_nodes_in_group("field_marbles"):
+		if body is RigidBody2D:
+			final_state[body.get_instance_id()] = {
+				"pos": body.global_position,
+				"vel": body.linear_velocity,
+				"pid": (body as Marble).owner_player_id,
+			}
+
+	print("[Field] Simulation finished — %d snapshots, %d marbles remaining" % [_snapshot_buffer.size(), final_state.size()])
+	_sync_snapshot_replay.rpc(_snapshot_buffer, final_state)
+	SignalBus.simulation_complete.emit(final_state)
+
+@rpc("authority", "call_remote", "reliable")
+func _sync_snapshot_replay(_buffer: Array, _final_state: Dictionary) -> void:
+	pass  # Client-side replay implemented in Sub-Phase 3.8
+
 func _exit_tree() -> void:
 	if SignalBus.phase_changed.is_connected(_on_phase_changed_for_camera):
 		SignalBus.phase_changed.disconnect(_on_phase_changed_for_camera)
 	if SignalBus.phase_changed.is_connected(_on_phase_changed_for_shooter_marble):
 		SignalBus.phase_changed.disconnect(_on_phase_changed_for_shooter_marble)
+	if SignalBus.phase_changed.is_connected(_on_phase_changed_for_simulation):
+		SignalBus.phase_changed.disconnect(_on_phase_changed_for_simulation)

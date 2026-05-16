@@ -21,6 +21,7 @@ func _ready() -> void:
 	root.get_node("Simulating").state_exited.connect(_on_simulating_exited)
 	root.get_node("EndTurn").state_entered.connect(_on_end_turn_entered)
 	root.get_node("MatchOver").state_entered.connect(_on_match_over_entered)
+	SignalBus.simulation_complete.connect(_on_simulation_complete)
 	print("[FSM] All state_entered signals connected")
 
 func _on_init_entered() -> void:
@@ -88,6 +89,10 @@ func _on_end_turn_entered() -> void:
 	print("[FSM] >>> EndTurn state ENTERED")
 	FieldStateManager.tick_aoe_durations()
 	MatchManager.set_phase(Enums.MatchState.END_TURN)
+
+func _on_simulation_complete(_final_state: Dictionary) -> void:
+	print("[FSM] Simulation complete, sending sim_done")
+	send_event("sim_done")
 
 func _on_match_over_entered() -> void:
 	print("[FSM] >>> MatchOver state ENTERED")

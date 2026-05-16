@@ -25,6 +25,7 @@ signal device_passed(next_player_id: int)
 
 # -- Field & marble events --
 signal marble_exited_boundary(marble: Marble)
+signal simulation_complete(final_state: Dictionary)
 
 # -- Aim input events --
 signal aim_inputs_changed(rotation_degrees: float, flick_power: float)
