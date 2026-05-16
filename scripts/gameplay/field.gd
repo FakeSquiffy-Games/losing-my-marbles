@@ -23,6 +23,7 @@ var _shooter_cam: PhantomCamera2D
 var _shooter_sample_marble: Marble = null
 var _current_rotation_degrees: float = 0.0
 var _trajectory_preview: TrajectoryPreview
+var _client_marbles: Dictionary = {}
 var _bodies_inside_boundary: Array[int] = []
 var _exited_marbles: Array[Marble] = []
 var _snapshot_buffer: Array[Dictionary] = []
@@ -77,6 +78,26 @@ func spawn_marble(data: MarbleData, player_id: int, position: Vector2, color: Co
 	marble.position = position
 	add_child(marble)
 	return marble
+
+func sync_marbles_to_clients() -> void:
+	if not multiplayer.is_server():
+		return
+	var data: Array[Dictionary] = []
+	for body in get_tree().get_nodes_in_group("field_marbles"):
+		if body is Marble:
+			var m := body as Marble
+			var c := m.get_color()
+			data.append({
+				"id": m.get_instance_id(),
+				"pos_x": m.global_position.x,
+				"pos_y": m.global_position.y,
+				"pid": m.owner_player_id,
+				"cr": c.r, "cg": c.g, "cb": c.b,
+			})
+	_sync_marble_state.rpc(data)
+
+func get_client_marble(marble_id: int) -> ClientMarbleVisual:
+	return _client_marbles.get(marble_id, null)
 
 func set_linear_damp(damp: float) -> void:
 	for body in get_tree().get_nodes_in_group("field_marbles"):
@@ -373,10 +394,36 @@ func _on_viewport_wall_hit(body: Node2D) -> void:
 		body.angular_velocity = 0.0
 
 @rpc("authority", "call_remote", "reliable")
+func _sync_marble_state(data: Array) -> void:
+	_clear_client_marbles()
+	for entry: Dictionary in data:
+		var marble_id: int = entry["id"]
+		var pos := Vector2(entry["pos_x"], entry["pos_y"])
+		var player_id: int = entry["pid"]
+		var color := Color(entry["cr"], entry["cg"], entry["cb"])
+		_create_client_marble(marble_id, pos, player_id, color)
+
+func _create_client_marble(marble_id: int, pos: Vector2, player_id: int, color: Color) -> void:
+	var visual := ClientMarbleVisual.new()
+	visual.marble_id = marble_id
+	visual.player_id = player_id
+	visual.marble_color = color
+	visual.position = pos
+	add_child(visual)
+	_client_marbles[marble_id] = visual
+
+func _clear_client_marbles() -> void:
+	for visual in _client_marbles.values():
+		if is_instance_valid(visual):
+			visual.queue_free()
+	_client_marbles.clear()
+
+@rpc("authority", "call_remote", "reliable")
 func _sync_snapshot_replay(_buffer: Array, _final_state: Dictionary) -> void:
 	pass  # Client-side replay implemented in Sub-Phase 3.8
 
 func _exit_tree() -> void:
+	_clear_client_marbles()
 	if SignalBus.phase_changed.is_connected(_on_phase_changed_for_camera):
 		SignalBus.phase_changed.disconnect(_on_phase_changed_for_camera)
 	if SignalBus.phase_changed.is_connected(_on_phase_changed_for_shooter_marble):

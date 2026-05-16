@@ -61,6 +61,7 @@ func _spawn_initial_marbles() -> void:
 		field.spawn_marble(marble_data2, 2, pos_p2, Color.BLUE)
 
 	print("[FSM] Initial marbles spawned")
+	field.sync_marbles_to_clients()
 	FieldStateManager.recalculate()
 
 func _on_draw_entered() -> void:

@@ -27,6 +27,9 @@ func setup(data: MarbleData, player_id: int, color: Color) -> void:
 	add_to_group("field_marbles")
 	queue_redraw()
 
+func get_color() -> Color:
+	return _color
+
 func _draw() -> void:
 	draw_circle(Vector2.ZERO, RADIUS, _color)
 	draw_arc(Vector2.ZERO, RADIUS, 0, TAU, 16, _color.darkened(0.3), 2.0)
