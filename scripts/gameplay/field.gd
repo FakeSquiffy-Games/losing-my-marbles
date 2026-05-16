@@ -26,6 +26,7 @@ var _trajectory_preview: TrajectoryPreview
 var _client_marbles: Dictionary = {}
 var _bodies_inside_boundary: Array[int] = []
 var _exited_marbles: Array[Marble] = []
+var _active_shooter_id: int = 0
 var _snapshot_buffer: Array[Dictionary] = []
 var _tick_counter: int = 0
 var _sim_elapsed: float = 0.0
@@ -189,6 +190,7 @@ func activate_shooter_marble() -> Marble:
 	_shooter_sample_marble = null
 	if is_instance_valid(marble):
 		marble.freeze = false
+		_active_shooter_id = marble.get_instance_id()
 	return marble
 
 func _get_shooter_spawn_pos(player_id: int) -> Vector2:
@@ -346,9 +348,28 @@ func _finish_simulation() -> void:
 			marble.queue_free()
 	_exited_marbles.clear()
 
+	_resolve_marble_lifecycle(final_state)
+
 	print("[Field] Simulation finished — %d snapshots, %d marbles remaining" % [_snapshot_buffer.size(), final_state.size()])
 	_sync_snapshot_replay.rpc(_snapshot_buffer, final_state)
 	SignalBus.simulation_complete.emit(final_state)
+
+func _resolve_marble_lifecycle(final_state: Dictionary) -> void:
+	if _active_shooter_id == 0:
+		return
+
+	if _active_shooter_id in final_state:
+		for body in get_tree().get_nodes_in_group("field_marbles"):
+			if body.get_instance_id() == _active_shooter_id and body is Marble:
+				var m := body as Marble
+				if m.marble_data:
+					MarblePoolManager.return_marble(m.marble_data)
+				print("[Field] Shooter marble (id=%d) stayed on field — returned to pool, now a standard field marble" % _active_shooter_id)
+				break
+	else:
+		print("[Field] Shooter marble (id=%d) exited boundary — despawned, SIMULATION effects skipped" % _active_shooter_id)
+
+	_active_shooter_id = 0
 
 func _setup_viewport_boundary() -> void:
 	const VIEWPORT_EXTENTS := Vector2(380.0, 330.0)
