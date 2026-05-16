@@ -1,7 +1,21 @@
-[gd_scene format=3 uid="uid://ciuun2pvc63qs"]
+[gd_scene load_steps=7 format=3 uid="uid://ciuun2pvc63qs"]
 
 [ext_resource type="Script" uid="uid://bfi2aawhgj4fn" path="res://scripts/ui/match.gd" id="1_script"]
 [ext_resource type="PackedScene" uid="uid://buic5a5c3jtlm" path="res://scenes/gameplay/field.tscn" id="2_field"]
+[ext_resource type="Script" path="res://addons/card-framework/card_manager.gd" id="3_card_manager"]
+[ext_resource type="PackedScene" path="res://scenes/ui/card_data_factory.tscn" id="4_factory_scene"]
+[ext_resource type="Script" path="res://addons/card-framework/hand.gd" id="5_hand"]
+[ext_resource type="Script" path="res://scripts/ui/play_area.gd" id="6_play_area"]
+
+[sub_resource type="Curve" id="Curve_hand_rot"]
+_limits = [-15.0, 15.0, 0.0, 1.0]
+_data = [Vector2(0, -15), 0.0, 30.0, 0, 1, Vector2(1, 15), 30.0, 0.0, 1, 0]
+point_count = 2
+
+[sub_resource type="Curve" id="Curve_hand_vert"]
+_limits = [0.0, 50.0, 0.0, 1.0]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.5, 40), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 3
 
 [node name="Match" type="Control" unique_id=1521104756]
 layout_mode = 3
@@ -11,6 +25,13 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_script")
+
+[node name="CardManager" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("3_card_manager")
+card_size = Vector2(150, 210)
+card_factory_scene = ExtResource("4_factory_scene")
 
 [node name="HUDContainer" type="VBoxContainer" parent="." unique_id=187485108]
 layout_mode = 1
@@ -50,6 +71,24 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Mana  P1: 0  |  P2: 0"
 horizontal_alignment = 1
+
+[node name="Hand" type="Control" parent="HUDContainer"]
+layout_mode = 2
+mouse_filter = 1
+script = ExtResource("5_hand")
+max_hand_size = 10
+max_hand_spread = 600
+card_face_up = true
+hand_rotation_curve = SubResource("Curve_hand_rot")
+hand_vertical_curve = SubResource("Curve_hand_vert")
+
+[node name="PlayArea" type="Control" parent="HUDContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 90)
+mouse_filter = 1
+script = ExtResource("6_play_area")
+enable_drop_zone = true
+sensor_visibility = false
 
 [node name="ButtonBar" type="HBoxContainer" parent="HUDContainer" unique_id=553400987]
 layout_mode = 2

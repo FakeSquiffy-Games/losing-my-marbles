@@ -20,6 +20,8 @@ const SHOT_IMPULSE_SCALE: float = 80.0
 @onready var _execute_button: Button = %ExecuteButton
 @onready var _aim_back_button: Button = %AimBackButton
 @onready var _back_button: Button = %BackButton
+@onready var _hand: Hand = $"HUDContainer/Hand"
+@onready var _play_area: PlayArea = $"HUDContainer/PlayArea"
 
 var _fsm: StateChart
 var _aim_controls: HBoxContainer
@@ -37,6 +39,8 @@ var _rotating_direction: int = 0
 var _fine_tune_value: float = 0.0
 var _fine_tune_direction: int = 0
 var _last_emitted_total: float = -INF
+var _card_library: CardLibrary
+var _card_data_cache: Array[CardData] = []
 
 func _ready() -> void:
 	_ready_button.pressed.connect(_on_ready_pressed)
@@ -48,6 +52,12 @@ func _ready() -> void:
 
 	SignalBus.phase_changed.connect(_on_phase_changed)
 	SignalBus.device_passed.connect(_on_device_passed)
+
+	_play_area.card_played.connect(_on_card_played)
+
+	_card_library = CardLibrary.new()
+	_card_library.load_cards()
+	_card_data_cache.assign(_card_library.cards)
 
 	_build_aim_controls()
 
@@ -208,6 +218,10 @@ func _on_phase_changed(phase: int) -> void:
 	print("[Match] _on_phase_changed: ", _phase_name(phase as Enums.MatchState))
 	_update_hud()
 	_show_phase_buttons()
+	_update_hand_visibility()
+
+	if phase == Enums.MatchState.DRAW and multiplayer.is_server():
+		_deal_cards()
 
 func _on_ready_pressed() -> void:
 	_fsm.send_event("ready")
@@ -338,6 +352,47 @@ func _phase_name(phase: Enums.MatchState) -> String:
 func _on_back_pressed() -> void:
 	NetworkManager.reset_network()
 	get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
+
+func _update_hand_visibility() -> void:
+	var phase := MatchManager.current_phase
+	var is_play := phase == Enums.MatchState.PLAY
+	_hand.visible = is_play
+
+func _deal_cards() -> void:
+	_hand.clear_cards()
+	if _card_data_cache.is_empty():
+		print("[Match] No card data available for dealing")
+		return
+
+	var hand_size: int = min(5, _card_data_cache.size())
+	var indices: Array = range(_card_data_cache.size())
+	indices.shuffle()
+	var factory: CardDataFactory = $CardManager.card_factory as CardDataFactory
+	if factory == null:
+		push_error("[Match] CardManager.card_factory is not a CardDataFactory")
+		return
+
+	for i: int in hand_size:
+		var card_data: CardData = _card_data_cache[indices[i]]
+		factory.create_card_from_data(card_data, _hand)
+
+	print("[Match] Dealt %d cards to hand" % hand_size)
+
+func _on_card_played(card: Card) -> void:
+	if not multiplayer.is_server():
+		return
+	var card_info: Dictionary = card.card_info
+	var card_data: CardData = card_info.get("card_data", null)
+	if card_data == null:
+		push_warning("[Match] Card played with no CardData")
+		return
+	_request_play_card.rpc(card_data.card_name)
+
+@rpc("any_peer", "call_local", "reliable")
+func _request_play_card(card_name: String) -> void:
+	if not multiplayer.is_server():
+		return
+	print("[Match] Card play requested: %s (validation stub — always accepted)" % card_name)
 
 func _exit_tree() -> void:
 	if SignalBus.phase_changed.is_connected(_on_phase_changed):
