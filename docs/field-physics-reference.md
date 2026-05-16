@@ -180,27 +180,27 @@ Governed by `scripts/gameplay/trajectory_preview.gd`. The preview is analytical 
 
 | Constant | Value | Source | Notes |
 |---|---|---|---|
-| `THROTTLE_FLICK_DELTA` | 0.01 | `trajectory_preview.gd:6` | Min flick change to trigger recalculation |
-| `THROTTLE_ROTATION_DELTA` | 0.5 ° | `trajectory_preview.gd:7` | Min rotation change to trigger recalculation |
-| `TRAJECTORY_EXTEND` | 2000 px | `trajectory_preview.gd:8` | How far the preview line extends if no hit |
-| `BOUNCE_DIRECTION_LENGTH` | 100 px | `trajectory_preview.gd:9` | Length of post-bounce direction indicator |
-| `GHOST_ALPHA` | 0.35 | `trajectory_preview.gd:11` | Opacity of ghost marble at predicted hit point |
+| `THROTTLE_ROTATION_DELTA` | 0.5 ° | `trajectory_preview.gd:6` | Min rotation change to trigger recalculation (flick throttle removed) |
+| `TRAJECTORY_EXTEND` | 2000 px | `trajectory_preview.gd:7` | How far the preview line extends if no hit |
+| `GHOST_ALPHA` | 0.35 | `trajectory_preview.gd:9` | Opacity of ghost marble at predicted hit point |
 
 ### Hit Detection
 
 - Uses analytical circle-ray intersection (quadratic solver).
 - Combined hit radius = `Marble.RADIUS * 2.0` (marble-to-marble center distance on contact).
-- One bounce limit — preview stops after first predicted collision.
+- Preview stops at first collision — no bounce prediction (proved inaccurate vs. physics simulation).
 - Shooter-to-wall pass-through: wall does not participate in hit test.
-- Preview origin: uses `field.get_shooter_position()` (inside field at ~191px radius).
-- When origin is inside the field, hit detection starts directly from origin (skips entry computation).
+- Preview origin: uses `field.get_shooter_position()` (outside field at 241px radius).
+- Shooter spawn respects persisted rotation via `_current_rotation_degrees`; emission deferred until shooter exists.
+- Single amber line from shooter to hit point (or fixed 2000px extension if no hit).
 
-### Dual Throttle
+### Throttle
 
 | Gate | Location | Condition |
 |---|---|---|
 | Emission | `match.gd:_emit_aim_if_changed()` | `abs(total_angle - last_emitted) > 0.5°` |
-| Receiver | `trajectory_preview.gd:_on_aim_inputs_changed()` | `abs(flick_change) >= 0.01` OR `abs(rotation_change) >= 0.5°` |
+| Receiver | `trajectory_preview.gd:_on_aim_inputs_changed()` | `abs(rotation_change) >= 0.5°` (flick changes ignored — fixed-length line) |
+| Re-entry | `trajectory_preview.gd:_on_phase_changed()` | `_prev_rotation` reset to `-INF` on AIM entry to ensure first emission passes |
 
 ---
 
