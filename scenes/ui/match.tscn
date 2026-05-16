@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://ciuun2pvc63qs"]
+[gd_scene load_steps=9 format=3 uid="uid://ciuun2pvc63qs"]
 
 [ext_resource type="Script" uid="uid://bfi2aawhgj4fn" path="res://scripts/ui/match.gd" id="1_script"]
 [ext_resource type="PackedScene" uid="uid://buic5a5c3jtlm" path="res://scenes/gameplay/field.tscn" id="2_field"]
@@ -33,47 +33,61 @@ script = ExtResource("3_card_manager")
 card_size = Vector2(150, 210)
 card_factory_scene = ExtResource("4_factory_scene")
 
-[node name="HUDContainer" type="VBoxContainer" parent="." unique_id=187485108]
+[node name="Field" parent="." unique_id=928684774 instance=ExtResource("2_field")]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 1
 
-[node name="PhaseLabel" type="Label" parent="HUDContainer" unique_id=1737652198]
+[node name="TableFrame" type="Control" parent="."]
 unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 28
-text = "Pre-Match"
-horizontal_alignment = 1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
-[node name="TurnLabel" type="Label" parent="HUDContainer" unique_id=1863317829]
+[node name="TableBackground" type="ColorRect" parent="TableFrame"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.08, 0.10, 0.08, 1.0)
+mouse_filter = 1
+
+[node name="PlayArea" type="Control" parent="TableFrame"]
 unique_name_in_owner = true
-layout_mode = 2
-text = "Turn: 0"
-horizontal_alignment = 1
+layout_mode = 1
+anchor_left = 0.1
+anchor_top = 0.1
+anchor_right = 0.9
+anchor_bottom = 0.72
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+script = ExtResource("6_play_area")
+enable_drop_zone = true
+sensor_visibility = false
 
-[node name="PlayerLabel" type="Label" parent="HUDContainer" unique_id=1433944884]
+[node name="Hand" type="Control" parent="TableFrame"]
 unique_name_in_owner = true
-layout_mode = 2
-text = "Active Player: 1"
-horizontal_alignment = 1
-
-[node name="HealthLabel" type="Label" parent="HUDContainer" unique_id=1159610497]
-unique_name_in_owner = true
-layout_mode = 2
-text = "HP  P1: 100  |  P2: 100"
-horizontal_alignment = 1
-
-[node name="ManaLabel" type="Label" parent="HUDContainer" unique_id=1858790185]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Mana  P1: 0  |  P2: 0"
-horizontal_alignment = 1
-
-[node name="Hand" type="Control" parent="HUDContainer"]
-layout_mode = 2
+layout_mode = 1
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -300.0
+offset_top = -200.0
+offset_right = 300.0
+grow_horizontal = 0
+grow_vertical = 0
 mouse_filter = 1
 script = ExtResource("5_hand")
 max_hand_size = 10
@@ -82,53 +96,128 @@ card_face_up = true
 hand_rotation_curve = SubResource("Curve_hand_rot")
 hand_vertical_curve = SubResource("Curve_hand_vert")
 
-[node name="PlayArea" type="Control" parent="HUDContainer"]
-layout_mode = 2
-custom_minimum_size = Vector2(0, 90)
+[node name="StatusPanel" type="Control" parent="."]
+layout_mode = 1
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 320.0
+offset_bottom = 170.0
 mouse_filter = 1
-script = ExtResource("6_play_area")
-enable_drop_zone = true
-sensor_visibility = false
 
-[node name="ButtonBar" type="HBoxContainer" parent="HUDContainer" unique_id=553400987]
+[node name="StatusLabels" type="VBoxContainer" parent="StatusPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PhaseLabel" type="Label" parent="StatusPanel/StatusLabels" unique_id=1737652198]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Pre-Match"
+horizontal_alignment = 1
+
+[node name="TurnLabel" type="Label" parent="StatusPanel/StatusLabels" unique_id=1863317829]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Turn: 0"
+horizontal_alignment = 1
+
+[node name="PlayerLabel" type="Label" parent="StatusPanel/StatusLabels" unique_id=1433944884]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Active Player: 1"
+horizontal_alignment = 1
+
+[node name="HealthLabel" type="Label" parent="StatusPanel/StatusLabels" unique_id=1159610497]
+unique_name_in_owner = true
+layout_mode = 2
+text = "HP  P1: 100  |  P2: 100"
+horizontal_alignment = 1
+
+[node name="ManaLabel" type="Label" parent="StatusPanel/StatusLabels" unique_id=1858790185]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Mana  P1: 0  |  P2: 0"
+horizontal_alignment = 1
+
+[node name="ControlsPanel" type="Control" parent="."]
+layout_mode = 1
+anchor_left = 1.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -200.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = -16.0
+grow_horizontal = 0
+grow_vertical = 2
+mouse_filter = 1
+
+[node name="ControlsVBox" type="VBoxContainer" parent="ControlsPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+theme_override_constants/separation = 8
+
+[node name="PhaseButtons" type="VBoxContainer" parent="ControlsPanel/ControlsVBox"]
 layout_mode = 2
 alignment = 1
+theme_override_constants/separation = 6
 
-[node name="ReadyButton" type="Button" parent="HUDContainer/ButtonBar" unique_id=1114835295]
+[node name="ReadyButton" type="Button" parent="ControlsPanel/ControlsVBox/PhaseButtons" unique_id=1114835295]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 text = "Ready"
 
-[node name="AimButton" type="Button" parent="HUDContainer/ButtonBar" unique_id=1203908781]
+[node name="AimButton" type="Button" parent="ControlsPanel/ControlsVBox/PhaseButtons" unique_id=1203908781]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 text = "Aim"
 
-[node name="ExecuteButton" type="Button" parent="HUDContainer/ButtonBar" unique_id=-2090773439]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-text = "Execute Shot"
-
-[node name="AimBackButton" type="Button" parent="HUDContainer/ButtonBar" unique_id=-565406194]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-text = "Back"
-
-[node name="EndTurnButton" type="Button" parent="HUDContainer/ButtonBar" unique_id=294282204]
+[node name="EndTurnButton" type="Button" parent="ControlsPanel/ControlsVBox/PhaseButtons" unique_id=294282204]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 text = "End Turn"
 
-[node name="BackButton" type="Button" parent="HUDContainer/ButtonBar" unique_id=894684008]
+[node name="ExecuteButton" type="Button" parent="ControlsPanel/ControlsVBox/PhaseButtons" unique_id=-2090773439]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "Execute Shot"
+
+[node name="AimBackButton" type="Button" parent="ControlsPanel/ControlsVBox/PhaseButtons" unique_id=-565406194]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "Back"
+
+[node name="AimControlsContainer" type="VBoxContainer" parent="ControlsPanel/ControlsVBox"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 12
+
+[node name="ControlsSpacer" type="Control" parent="ControlsPanel/ControlsVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="BackButton" type="Button" parent="ControlsPanel/ControlsVBox" unique_id=894684008]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Leave Match"
-
-[node name="Field" parent="HUDContainer" unique_id=928684774 instance=ExtResource("2_field")]
-layout_mode = 2
-size_flags_vertical = 3

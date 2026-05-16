@@ -20,11 +20,13 @@ const SHOT_IMPULSE_SCALE: float = 80.0
 @onready var _execute_button: Button = %ExecuteButton
 @onready var _aim_back_button: Button = %AimBackButton
 @onready var _back_button: Button = %BackButton
-@onready var _hand: Hand = $"HUDContainer/Hand"
-@onready var _play_area: PlayArea = $"HUDContainer/PlayArea"
+@onready var _hand: Hand = %Hand
+@onready var _play_area: PlayArea = %PlayArea
+@onready var _aim_controls_container: VBoxContainer = %AimControlsContainer
+@onready var _table_frame: Control = %TableFrame
 
 var _fsm: StateChart
-var _aim_controls: HBoxContainer
+var _aim_controls: BoxContainer
 var _rotate_left_button: Button
 var _rotate_right_button: Button
 var _rotation_label: Label
@@ -54,6 +56,8 @@ func _ready() -> void:
 	SignalBus.device_passed.connect(_on_device_passed)
 
 	_play_area.card_played.connect(_on_card_played)
+
+	get_tree().root.size_changed.connect(_on_viewport_size_changed)
 
 	_card_library = CardLibrary.new()
 	_card_library.load_cards()
@@ -97,9 +101,9 @@ func _emit_aim_if_changed() -> void:
 		SignalBus.aim_inputs_changed.emit(total, _flick_value)
 
 func _build_aim_controls() -> void:
-	_aim_controls = HBoxContainer.new()
+	_aim_controls = VBoxContainer.new()
 	_aim_controls.name = "AimControls"
-	_aim_controls.visible = false
+	_aim_controls.visible = true
 	_aim_controls.alignment = BoxContainer.ALIGNMENT_CENTER
 	_aim_controls.add_theme_constant_override("separation", 20)
 
@@ -139,9 +143,7 @@ func _build_aim_controls() -> void:
 	_aim_controls.add_child(fine_tune_group)
 	_aim_controls.add_child(flick_group)
 
-	var hud := $HUDContainer
-	hud.add_child(_aim_controls)
-	hud.move_child(_aim_controls, hud.get_child_count() - 2)
+	_aim_controls_container.add_child(_aim_controls)
 
 func _make_button_pair(on_left_down: Callable, on_right_down: Callable, on_up: Callable) -> HBoxContainer:
 	var container := HBoxContainer.new()
@@ -210,8 +212,8 @@ func _apply_map_rotation() -> void:
 		field_node.set_map_rotation(_rotation_value)
 
 func _get_field_node() -> Node2D:
-	if has_node("HUDContainer/Field/SubViewport/Field"):
-		return get_node("HUDContainer/Field/SubViewport/Field") as Node2D
+	if has_node("Field/SubViewport/Field"):
+		return get_node("Field/SubViewport/Field") as Node2D
 	return null
 
 func _on_phase_changed(phase: int) -> void:
@@ -223,11 +225,14 @@ func _on_phase_changed(phase: int) -> void:
 	if phase == Enums.MatchState.DRAW and multiplayer.is_server():
 		_deal_cards()
 
+	if phase == Enums.MatchState.PLAY and _table_frame.offset_top > 10.0:
+		_slide_table_frame_in()
+
 func _on_ready_pressed() -> void:
 	_fsm.send_event("ready")
 
 func _on_aim_pressed() -> void:
-	_fsm.send_event("aim")
+	_slide_table_frame_out(func(): _fsm.send_event("aim"))
 
 func _on_end_turn_pressed() -> void:
 	_fsm.send_event("end_turn")
@@ -293,7 +298,9 @@ func _show_phase_buttons() -> void:
 	_end_turn_button.visible = phase == Enums.MatchState.PLAY and is_server_ok
 	_execute_button.visible = phase == Enums.MatchState.AIM and is_server_ok
 	_aim_back_button.visible = phase == Enums.MatchState.AIM and is_server_ok
-	_aim_controls.visible = phase == Enums.MatchState.AIM and is_server_ok
+	_aim_controls_container.visible = phase == Enums.MatchState.AIM and is_server_ok
+
+	_play_area.mouse_filter = Control.MOUSE_FILTER_PASS if phase == Enums.MatchState.PLAY else Control.MOUSE_FILTER_IGNORE
 
 	_ready_button.disabled = not is_active
 	_aim_button.disabled = not is_active
@@ -399,3 +406,29 @@ func _exit_tree() -> void:
 		SignalBus.phase_changed.disconnect(_on_phase_changed)
 	if SignalBus.device_passed.is_connected(_on_device_passed):
 		SignalBus.device_passed.disconnect(_on_device_passed)
+	if get_tree().root.size_changed.is_connected(_on_viewport_size_changed):
+		get_tree().root.size_changed.disconnect(_on_viewport_size_changed)
+
+func _on_viewport_size_changed() -> void:
+	if _table_frame.offset_top > 10.0:
+		var vp_height := get_viewport_rect().size.y
+		_table_frame.offset_top = vp_height
+		_table_frame.offset_bottom = vp_height
+
+func _slide_table_frame_out(then: Callable) -> void:
+	var vp_height := get_viewport_rect().size.y
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.set_trans(Tween.TRANS_QUAD)
+	tween.set_ease(Tween.EASE_IN_OUT)
+	tween.tween_property(_table_frame, "offset_top", vp_height, 0.4)
+	tween.tween_property(_table_frame, "offset_bottom", vp_height, 0.4)
+	tween.finished.connect(then, CONNECT_ONE_SHOT)
+
+func _slide_table_frame_in() -> void:
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.set_trans(Tween.TRANS_QUAD)
+	tween.set_ease(Tween.EASE_IN_OUT)
+	tween.tween_property(_table_frame, "offset_top", 0.0, 0.4)
+	tween.tween_property(_table_frame, "offset_bottom", 0.0, 0.4)
