@@ -25,8 +25,8 @@ script = ExtResource("1_script")
 [node name="Camera2D" type="Camera2D" parent="SubViewport/Field" unique_id=91595720]
 unique_name_in_owner = true
 top_level = true
-ignore_rotation = false
 position = Vector2(450, 250)
+ignore_rotation = false
 
 [node name="PhantomCameraHost" type="Node" parent="SubViewport/Field/Camera2D" unique_id=717903094]
 process_priority = 300
@@ -55,4 +55,3 @@ gravity_space_override = 3
 [node name="CollisionShape2D" type="CollisionShape2D" parent="SubViewport/Field/GravityZone" unique_id=782654351]
 position = Vector2(450, 250)
 shape = SubResource("1_rect")
-

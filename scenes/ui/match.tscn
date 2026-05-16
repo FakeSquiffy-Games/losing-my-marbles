@@ -67,13 +67,13 @@ visible = false
 layout_mode = 2
 text = "Aim"
 
-[node name="ExecuteButton" type="Button" parent="HUDContainer/ButtonBar" unique_id=2204193857]
+[node name="ExecuteButton" type="Button" parent="HUDContainer/ButtonBar" unique_id=-2090773439]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 text = "Execute Shot"
 
-[node name="AimBackButton" type="Button" parent="HUDContainer/ButtonBar" unique_id=3729561102]
+[node name="AimBackButton" type="Button" parent="HUDContainer/ButtonBar" unique_id=-565406194]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
@@ -90,6 +90,6 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Leave Match"
 
-[node name="Field" parent="HUDContainer" instance=ExtResource("2_field")]
+[node name="Field" parent="HUDContainer" unique_id=928684774 instance=ExtResource("2_field")]
 layout_mode = 2
 size_flags_vertical = 3
