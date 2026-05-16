@@ -87,7 +87,7 @@ The following decisions are finalized. They must not be reversed without a docum
 | D7 | Session Discovery | Matchmaking uses 6-character UDP broadcast Session Keys exclusively. Direct IP connect fields are purged from the project. |
 | D8 | Object Lifecycle | If the launched shooting marble comes to rest without exiting the field boundary, it sheds its "shooter" state and becomes a standard field marble in the shared pool. If it exits the boundary, it is despawned and its SIMULATION-triggered effects do not fire. |
 | D9 | Marble Reference Safety | `GameState.active_marble` must be implemented as a computed property backed by a `WeakRef` internally to prevent use-after-free hazards during ejection or freeing. |
-| D10 | Input / Prediction Throttling | `update_prediction()` calls are throttled by a delta threshold: the trajectory raycast updates only when the absolute difference between the current slider value and `prev_pull` exceeds `0.01`. |
+| D10 | Input / Prediction Throttling | Trajectory prediction uses a **dual-throttle** mechanism: an emission gate in `match.gd` emits `aim_inputs_changed` only when the total angle changes by ≥ 0.5°; a receiver gate in `TrajectoryPreview` skips recalculation unless flick changes ≥ 0.01 OR rotation changes ≥ 0.5°. This prevents redundant redraws from either input source. |
 | D11 | Anti-Overlap Spawning | The `MatchManager` or a dedicated utility module must implement a `find_valid_position()` algorithm that checks for existing `RigidBody2D` overlaps before instantiating any new marble on the field. |
 | D12 | Discard Pile | Each player has a separate discard pile alongside their draw deck. Played cards move to the discard pile. When the draw deck is empty during a draw, the discard pile is shuffled and becomes the new draw deck. If both are empty, only the available cards are drawn (no crash). |
 | D13 | One-Marble-per-Shot Constraint | `MatchManager` tracks a per-turn boolean flag `marble_played`. This flag is set `true` when any Marble card is played and reset `false` after each SIMULATING phase concludes. The server rejects any `_request_play_card` RPC that would play a second Marble card while the flag is `true`. The UI disables Marble cards in the hand and displays a visual hint directing the player to the AIM phase once a marble is in play. |
@@ -322,38 +322,71 @@ The INIT state requires a populated marble pool to spawn field marbles, but the 
 
 **Goal:** Implement map simulation, aiming mechanics, Phantom Camera, physics layering, trajectory prediction, and the client snapshot relay system.
 
-#### 3.1 Map Scene
-- Create the Map scene with the playing field boundary.
-- Wrap the field in an `Area2D` configured with `gravity_override = true` for custom gravity control via `FieldStateManager`.
+#### 3.1 Circular Field & Boundary Detection
+- Create the Field scene (`field.gd`, extends `Node2D`) as a circular playing field:
+  - **Radius:** 220px, **Center:** (450, 250).
+  - **Circular wall:** `StaticBody2D` + `CollisionPolygon2D` built programmatically from 72 segments (12px thickness), forming an outer ring that marbles bounce off.
+  - **Background:** Drawn via `_draw()` — filled circle + arc outline for the field surface.
+  - **Gravity zone:** `Area2D` with `CircleShape2D` (radius 220), positioned at field center, configured with `gravity_override = true` for `FieldStateManager` control.
+  - **Boundary detector:** A separate `Area2D` (radius = field_radius + 30px overscan) with `body_exited` connected to detect marbles leaving the field. Emits `SignalBus.marble_exited_boundary(marble)` when a `Marble` exits.
+- `find_valid_position()`: Physics overlap query via `intersect_shape` with golden-angle spiral search (D11), clamping candidates to field bounds. Used for all marble spawns.
+- See `scripts/gameplay/field.gd` for constants and implementation.
 
 #### 3.2 FieldStateManager
-- `FieldStateManager.gd` (autoload or server-side node):
-  - Maintains three layers: `map_base: PhysicsObjectData`, `terrain_delta: PhysicsObjectData`, `aoe_deltas: Array[PhysicsObjectData]`.
-  - Exposes `recalculate() -> void`: computes `effective = map_base + terrain_delta + sum(aoe_deltas)` for each property, then pushes results to the physics engine.
-  - `push_to_engine(effective: PhysicsObjectData) -> void`: sets `area2d.gravity`, `area2d.gravity_direction`, and calls `set_linear_damp(effective.stickiness)` on all active `RigidBody2D` marbles.
-  - `recalculate()` is called only when a layer changes (card played, AOE expired) — never per-tick.
+- `FieldStateManager.gd` (autoload):
+  - Maintains three layers as **Dictionaries** (not `PhysicsObjectData` resources): `_map_base: Dictionary`, `_terrain_delta: Dictionary`, `_aoe_deltas: Array[Dictionary]`.
+  - Dictionary keys: `"gravity_magnitude"`, `"gravity_direction"`, `"linear_damp"`. Defaults: gravity 0, direction zero, damp 2.0.
+  - **`recalculate()`** (public): Single entry point. Computes `effective = map_base + terrain_delta + sum(aoe_deltas)` by iterating keys, then calls `push_to_engine(effective)`.
+  - **`push_to_engine(effective: Dictionary)`**: Finds the `"game_field"` group node, calls `field.set_gravity(dir, mag)` and `field.set_linear_damp(damp)` (which iterates `"field_marbles"` group).
+  - Layer mutators (`apply_map_base`, `set_terrain_delta`, `add_aoe_delta`, `remove_aoe_delta`) all call `recalculate()` after modification.
+  - **`tick_aoe_durations()`**: Decrements `turns_remaining` on all AOEs, removes expired ones (≤ 0), calls `recalculate()` if changed. Called at END_TURN state transition.
+  - `recalculate()` is called only when a layer changes — never per-tick.
+  - See `autoloads/field_state_manager.gd`.
 
 #### 3.3 Phantom Camera
 - Install **Phantom Camera (v0.6+)**.
-- Set up two `PhantomCamera2D` nodes:
-  - `BoardOverviewCamera`: default low priority; shows the full field top-down (Field View).
-  - `ShooterFocusCamera`: higher priority; activates during AIM and SIMULATING phases (Flick View perspective).
-- Camera switching is driven by `MatchState` changes broadcast to the client. Switching is achieved by adjusting `priority` values on the `PhantomCamera2D` nodes, not by direct camera swaps.
+- Two `PhantomCamera2D` nodes:
+  - **`BoardOverviewCamera`** (existing, renamed): priority 10, shows the full field top-down. Configured in the match scene with `unique_name_in_owner`.
+  - **`ShooterFocusCamera`** (created programmatically in `field.gd._setup_shooter_camera()`): priority 0 default, positioned at field center.
+- Camera switching is driven by `SignalBus.phase_changed` → `_on_phase_changed_for_camera()` in `field.gd`:
+  - AIM or SIMULATING: `ShooterFocusCamera.priority = 20` (takes over from BoardOverviewCamera).
+  - All other states: `ShooterFocusCamera.priority = 0` (falls back to BoardOverview).
+- `_exit_tree()` disconnects the SignalBus connection.
 
 #### 3.4 AIM Phase UI
-- Implement Map Rotation: rotates the entire Map scene node.
-- Implement Fine-Tune Angle: adjusts a secondary angle offset for the marble launch direction.
-- Implement Flick Slider: a UI slider whose value is used in `impulse = slider_value + character.power`. The `character.power` value is read-only from `CharacterData` and is never exposed as an adjustable input.
+- **Map Rotation:** `set_map_rotation(degrees)` rotates the **Camera2D** nodes (`BoardOverviewCamera` and `ShooterFocusCamera`), not the Map scene. `Camera2D.ignore_rotation = false` is set in both `.tscn` and `_ready()`. Marbles stay fixed in world space.
+- **Shooter sample marble:** Spawned at AIM entry via `_spawn_shooter_sample()`, frozen at a position just outside the field boundary on the right side (`FIELD_RADIUS + RADIUS + 12px`). Counter-rotated via `_update_shooter_marble_position()` so it appears visually fixed at the right edge. Despawned on AIM exit (except when transitioning to SIMULATING).
+- **Dual aim control sets** (built programmatically in `match.gd._build_aim_controls()`):
+  - **Field rotation buttons** (±120°/sec) — coarse aim.
+  - **Fine-tune buttons** (±60°/sec) — precise angular offset.
+  - **Flick Power slider** (0–10, step 0.1) — stored in `_flick_value`.
+- Total launch angle = `_rotation_value + _fine_tune_value`. Both `_rotation_value` and `_fine_tune_value` are reset to 0 on AIM entry.
+- `character.power` value is read-only from `CharacterData` and is never exposed as an adjustable input (D5). It will be added to `_flick_value` at shot execution time.
 
-#### 3.5 Trajectory Prediction Raycast
-- Implement `TrajectoryPreview.gd`: a node that renders a predicted arc from the shooting marble's current position.
-- Uses `PhysicsDirectSpaceState2D` (via `get_world_2d().direct_space_state`) to cast rays and simulate bounce angles for the first collision.
-- `update_prediction(slider_value: float, launch_angle: float) -> void`: recalculates and redraws the arc.
-- Connect this to the Flick Slider's `value_changed` signal via a throttle guard (D10): only call `update_prediction()` when `abs(slider_value - prev_pull) > 0.01`.
+#### 3.5 Trajectory Prediction
+- `TrajectoryPreview.gd` (`class_name`, child of Field, created programmatically via `_setup_trajectory_preview()`).
+- **Uses analytical circle-ray intersection** (quadratic solver) — NOT physics raycasts. This avoids coupling to the physics tick and gives deterministic, frame-rate-independent predictions.
+- **Algorithm:**
+  1. Compute field entry point by intersecting the shot ray with the field boundary circle (shooter→field entry passes through wall without collision).
+  2. From the entry point, check only field marbles (not the wall) using combined radii (`Marble.RADIUS * 2.0`) for the hit test.
+  3. On hit: record hit point, compute bounce direction (`dir.bounce(normal)`), draw a 100px dashed orange post-bounce direction indicator.
+  4. **One bounce limit** — the preview stops after the first predicted collision.
+  5. **Ghost marble marker:** translucent circle + arc at `Marble.RADIUS` (35% alpha) drawn at the predicted hit point.
+- **Dual-throttle mechanism:**
+  - **Emission gate** in `match.gd._emit_aim_if_changed()`: only emits when `abs(total - last_emitted) > 0.5°`.
+  - **Receiver gate** in `TrajectoryPreview._on_aim_inputs_changed()`: only recalculates when flick changes ≥ 0.01 OR rotation changes ≥ 0.5°.
+- **Signal flow:** `match.gd` → `SignalBus.aim_inputs_changed(rotation_degrees, flick_power)` → `TrajectoryPreview._on_aim_inputs_changed()`.
+- Field exposes `get_shooter_position()` and `get_field_marble_positions()` for the preview to query.
+- See `scripts/gameplay/trajectory_preview.gd`.
 
 #### 3.6 Shot Execution
-- On "Execute Shot": apply `RigidBody2D.apply_central_impulse(direction * (slider_value + character.power))` to the designated shooting marble on the server.
+- On "Execute Shot" (already wired to `_fsm.send_event("shoot")` in `match.gd._on_execute_pressed()`):
+  - The flick power value is stored in `match.gd._flick_value` (range 0–10).
+  - The total launch angle is `_rotation_value + _fine_tune_value`.
+  - Shot direction: `Vector2.LEFT.rotated(deg_to_rad(total_angle))`.
+  - Apply `RigidBody2D.apply_central_impulse(direction * (_flick_value + character.power))` to the designated shooting marble on the server.
 - Transition to SIMULATING state.
+- The `ExecuteButton` and FSM `"shoot"` event are already wired; only the physics impulse and state transition logic need implementation.
 
 #### 3.7 SIMULATING Phase: Server Snapshot Capture
 On the server, during the SIMULATING phase:
