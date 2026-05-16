@@ -33,6 +33,33 @@ Complete reference of all variables governing physics interactions inside the pl
 | Visual field | 208–220 | `_draw()` arc | Purely visual — no physical collider (D17) |
 | BoundaryDetector | 250 | `Area2D` (monitoring) | Tracks entries/exits; emits `marble_exited_boundary` on genuine exit |
 | GravityZone | 260 | `Area2D` (REPLACE) | Overrides global gravity within this radius |
+| Viewport walls | x=70/830, y=-80/580 | `StaticBody2D` rect | Off-screen walls; kill marble velocity on contact (`bounce=0`, zeros `linear_velocity` + `angular_velocity`) |
+
+### Viewport Boundary Layout
+
+```
+          Top wall (y = -80)
+    ┌─────────────────────────────────┐
+    │                                 │
+    │  FIELD_CENTER (450, 250)        │
+    │     radius 220 (visual)         │
+    │     radius 250 (detector)       │
+    │                                 │
+    │  Left wall       Right wall     │
+    │  (x = 70)        (x = 830)      │
+    │                                 │
+    └─────────────────────────────────┘
+         Bottom wall (y = 580)
+```
+
+### Marble Exit & Despawn Flow
+
+1. Marble crosses `BoundaryDetector` (R=250) → `marble_exited_boundary` emitted, marble added to `_exited_marbles` array (preserves exit order for future effect resolution)
+2. Marble continues until it hits a viewport wall or settles via `linear_damp`
+3. Simulation completes (all remaining marbles below velocity threshold)
+4. `_finish_simulation()` despawns all marbles in `_exited_marbles` via `queue_free()`, erases them from `final_state`
+5. `SignalBus.simulation_complete` emitted → FSM transitions to PLAY
+6. Effect handler (Phase 5) will process knockouts in exit order
 
 ---
 

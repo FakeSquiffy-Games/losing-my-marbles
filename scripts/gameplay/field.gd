@@ -23,6 +23,7 @@ var _shooter_cam: PhantomCamera2D
 var _shooter_sample_marble: Marble = null
 var _trajectory_preview: TrajectoryPreview
 var _bodies_inside_boundary: Array[int] = []
+var _exited_marbles: Array[Marble] = []
 var _snapshot_buffer: Array[Dictionary] = []
 var _tick_counter: int = 0
 var _sim_elapsed: float = 0.0
@@ -36,6 +37,7 @@ func _ready() -> void:
 	_apply_gravity()
 	_update_gravity_shape()
 	_setup_boundary_detector()
+	_setup_viewport_boundary()
 	_setup_shooter_camera()
 	_setup_trajectory_preview()
 	$Camera2D.ignore_rotation = false
@@ -215,6 +217,7 @@ func _on_body_exited_boundary(body: Node2D) -> void:
 		if id in _bodies_inside_boundary:
 			_bodies_inside_boundary.erase(id)
 			print("[Field] Marble exited boundary — player=%d" % body.owner_player_id)
+			_exited_marbles.append(body)
 			SignalBus.marble_exited_boundary.emit(body as Marble)
 
 func _physics_process(delta: float) -> void:
@@ -239,6 +242,7 @@ func _on_phase_changed_for_simulation(phase: int) -> void:
 	var match_phase := phase as Enums.MatchState
 	if match_phase == Enums.MatchState.SIMULATING:
 		_snapshot_buffer.clear()
+		_exited_marbles.clear()
 		_tick_counter = 0
 		_sim_elapsed = 0.0
 		_sim_active = true
@@ -290,9 +294,58 @@ func _finish_simulation() -> void:
 				"pid": (body as Marble).owner_player_id,
 			}
 
+	for marble in _exited_marbles:
+		if is_instance_valid(marble):
+			final_state.erase(marble.get_instance_id())
+			marble.queue_free()
+	_exited_marbles.clear()
+
 	print("[Field] Simulation finished — %d snapshots, %d marbles remaining" % [_snapshot_buffer.size(), final_state.size()])
 	_sync_snapshot_replay.rpc(_snapshot_buffer, final_state)
 	SignalBus.simulation_complete.emit(final_state)
+
+func _setup_viewport_boundary() -> void:
+	const VIEWPORT_EXTENTS := Vector2(380.0, 330.0)
+	var wall_material := PhysicsMaterial.new()
+	wall_material.bounce = 0.0
+	wall_material.friction = 1.0
+
+	_create_wall_segment(Vector2(FIELD_CENTER.x - VIEWPORT_EXTENTS.x, FIELD_CENTER.y), Vector2(6.0, VIEWPORT_EXTENTS.y * 2.0), wall_material)
+	_create_wall_segment(Vector2(FIELD_CENTER.x + VIEWPORT_EXTENTS.x, FIELD_CENTER.y), Vector2(6.0, VIEWPORT_EXTENTS.y * 2.0), wall_material)
+	_create_wall_segment(Vector2(FIELD_CENTER.x, FIELD_CENTER.y - VIEWPORT_EXTENTS.y), Vector2(VIEWPORT_EXTENTS.x * 2.0, 6.0), wall_material)
+	_create_wall_segment(Vector2(FIELD_CENTER.x, FIELD_CENTER.y + VIEWPORT_EXTENTS.y), Vector2(VIEWPORT_EXTENTS.x * 2.0, 6.0), wall_material)
+
+func _create_wall_segment(pos: Vector2, size: Vector2, material: PhysicsMaterial) -> void:
+	var wall := StaticBody2D.new()
+	wall.position = pos
+	wall.physics_material_override = material
+	wall.collision_layer = 1
+	wall.collision_mask = 1
+
+	var shape := CollisionShape2D.new()
+	var rect := RectangleShape2D.new()
+	rect.size = size
+	shape.shape = rect
+	wall.add_child(shape)
+
+	var detector := Area2D.new()
+	detector.collision_layer = 0
+	detector.collision_mask = 1
+	detector.monitoring = true
+	var detector_shape := CollisionShape2D.new()
+	var detector_rect := RectangleShape2D.new()
+	detector_rect.size = size
+	detector_shape.shape = detector_rect
+	detector.add_child(detector_shape)
+	detector.body_entered.connect(_on_viewport_wall_hit)
+	wall.add_child(detector)
+
+	add_child(wall)
+
+func _on_viewport_wall_hit(body: Node2D) -> void:
+	if body is RigidBody2D:
+		body.linear_velocity = Vector2.ZERO
+		body.angular_velocity = 0.0
 
 @rpc("authority", "call_remote", "reliable")
 func _sync_snapshot_replay(_buffer: Array, _final_state: Dictionary) -> void:
