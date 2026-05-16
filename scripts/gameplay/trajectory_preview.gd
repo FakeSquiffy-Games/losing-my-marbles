@@ -57,14 +57,18 @@ func _simulate_trajectory(origin: Vector2, direction: Vector2, marbles: Array[Ve
 	var dir := direction.normalized()
 	var entry_radius := _Field.FIELD_RADIUS - _Field.WALL_THICKNESS - Marble.RADIUS
 
-	# Entry into field (pass-through boundary)
-	var entry := _circle_ray_intersection(pos, dir, _Field.FIELD_CENTER, entry_radius)
-	if entry == Vector2.ZERO:
-		points.append(pos + dir * TRAJECTORY_EXTEND)
-		return [points, Vector2.ZERO, Vector2.ZERO, Color.WHITE]
-
-	points.append(entry)
-	pos = entry + dir * 0.5
+	if origin.distance_to(_Field.FIELD_CENTER) > entry_radius:
+		# Shooter outside field — compute entry point (passes through wall)
+		var entry := _circle_ray_intersection(pos, dir, _Field.FIELD_CENTER, entry_radius)
+		if entry == Vector2.ZERO:
+			points.append(pos + dir * TRAJECTORY_EXTEND)
+			return [points, Vector2.ZERO, Vector2.ZERO, Color.WHITE]
+		points.append(entry)
+		pos = entry + dir * 0.5
+	else:
+		# Shooter already inside field — start directly from origin
+		points.append(origin + dir * 0.1)
+		pos = origin + dir * (Marble.RADIUS + 1.0)
 
 	# Find nearest marble hit (wall excluded — passes through if no hit)
 	var nearest := _find_nearest_marble_hit(pos, dir, marbles)

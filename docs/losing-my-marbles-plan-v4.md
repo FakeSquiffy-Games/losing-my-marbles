@@ -82,7 +82,7 @@ The following decisions are finalized. They must not be reversed without a docum
 | D2 | Gravity Implementation | The playing field is wrapped in an `Area2D` with `gravity_override = true`. `FieldStateManager` updates its directional vector and magnitude. |
 | D3 | Effect Targeting | `EffectData` uses two enums: `TriggerEnum { PLAY, SIMULATION }` and `TargetEnum { SELF, OPPONENT, CURR_MARBLE, KNOCKER, KNOCKER_OPP, BOTH, FIELD_MAP, FIELD_MARBLES }`. PLAY-valid targets: `SELF`, `OPPONENT`, `CURR_MARBLE`, `BOTH`, `FIELD_MAP`, `FIELD_MARBLES`. SIMULATION-valid targets: `KNOCKER`, `KNOCKER_OPP`, `BOTH`, `FIELD_MAP`, `FIELD_MARBLES`. The `EffectHandler` validates trigger context before dispatch. |
 | D4 | Multiplier System | A threshold table (e.g., 3/5/7 knocks) managed by `MatchManager` scales the numerical `value` inside the `EffectHandler` for the duration of the current turn. |
-| D5 | Aiming Mechanics | The AIM phase uses three player-controlled inputs: Map Rotation, Fine-Tune Angle, and Flick Slider. Character Power is a **read-only stat**, not a player input. The final shot impulse is computed as `slider_value + character.power` at execution time. |
+| D5 | Aiming Mechanics | The AIM phase uses three player-controlled inputs: Map Rotation, Fine-Tune Angle, and Flick Slider. Character Power is a **read-only stat**, not a player input. The final shot impulse is computed as `slider_value * character.power` at execution time. |
 | D6 | Single-Player Offline | Implemented via `OfflineMultiplayerPeer`. Operates strictly as pass-and-play. The **Pass Device Screen** fires at every turn transition: it uses the Transition Screen's visual language (sliding animation) but displays a "Pass the device to [Player Name]" prompt and requires an explicit confirmation button press before the board is revealed. |
 | D7 | Session Discovery | Matchmaking uses 6-character UDP broadcast Session Keys exclusively. Direct IP connect fields are purged from the project. |
 | D8 | Object Lifecycle | If the launched shooting marble comes to rest without exiting the field boundary, it sheds its "shooter" state and becomes a standard field marble in the shared pool. If it exits the boundary, it is despawned and its SIMULATION-triggered effects do not fire. |
@@ -384,7 +384,7 @@ The INIT state requires a populated marble pool to spawn field marbles, but the 
   - The flick power value is stored in `match.gd._flick_value` (range 0–10).
   - The total launch angle is `_rotation_value + _fine_tune_value`.
   - Shot direction: `Vector2.LEFT.rotated(deg_to_rad(total_angle))`.
-  - Apply `RigidBody2D.apply_central_impulse(direction * (_flick_value + character.power))` to the designated shooting marble on the server.
+  - Apply `RigidBody2D.apply_central_impulse(direction * _flick_value * character.power)` to the designated shooting marble on the server.
 - Transition to SIMULATING state.
 - The `ExecuteButton` and FSM `"shoot"` event are already wired; only the physics impulse and state transition logic need implementation.
 

@@ -8,6 +8,7 @@ const MARBLE_SCENE := preload("res://scenes/gameplay/marble.tscn")
 
 const SHOOTER_FOCUS_PRIORITY: int = 20
 const BOARD_OVERVIEW_PRIORITY: int = 10
+const SHOOTER_SPAWN_DIST: float = FIELD_RADIUS - WALL_THICKNESS - Marble.RADIUS - 2.0
 
 @onready var _background: ColorRect = %Background
 @onready var _gravity_zone: Area2D = %GravityZone
@@ -61,7 +62,7 @@ func _update_gravity_shape() -> void:
 	var shape_node := _gravity_zone.get_node_or_null("CollisionShape2D")
 	if shape_node:
 		var circle := CircleShape2D.new()
-		circle.radius = FIELD_RADIUS
+		circle.radius = FIELD_RADIUS + 40.0
 		shape_node.shape = circle
 		shape_node.position = FIELD_CENTER
 
@@ -97,8 +98,7 @@ func set_map_rotation(degrees: float) -> void:
 func _update_shooter_marble_position(degrees: float) -> void:
 	if not is_instance_valid(_shooter_sample_marble):
 		return
-	var dist := FIELD_RADIUS + Marble.RADIUS + 12.0
-	_shooter_sample_marble.position = FIELD_CENTER + Vector2.RIGHT.rotated(deg_to_rad(degrees)) * dist
+	_shooter_sample_marble.position = FIELD_CENTER + Vector2.RIGHT.rotated(deg_to_rad(degrees)) * SHOOTER_SPAWN_DIST
 
 func find_valid_position(preferred: Vector2, radius: float = Marble.RADIUS) -> Vector2:
 	var space_state := get_world_2d().direct_space_state
@@ -167,9 +167,15 @@ func _despawn_shooter_sample() -> void:
 		_shooter_sample_marble.queue_free()
 	_shooter_sample_marble = null
 
+func activate_shooter_marble() -> Marble:
+	var marble := _shooter_sample_marble
+	_shooter_sample_marble = null
+	if is_instance_valid(marble):
+		marble.freeze = false
+	return marble
+
 func _get_shooter_spawn_pos(player_id: int) -> Vector2:
-	var dist := FIELD_RADIUS + Marble.RADIUS + 12.0
-	return FIELD_CENTER + Vector2.RIGHT * dist
+	return FIELD_CENTER + Vector2.RIGHT * SHOOTER_SPAWN_DIST
 
 func get_shooter_position() -> Vector2:
 	if is_instance_valid(_shooter_sample_marble):

@@ -7,6 +7,7 @@ const AIM_FLICK_MIN: float = 0.0
 const AIM_FLICK_MAX: float = 10.0
 const ROTATION_SPEED: float = 120.0
 const FINE_TUNE_SPEED: float = 60.0
+const SHOT_IMPULSE_SCALE: float = 80.0
 
 @onready var _phase_label: Label = %PhaseLabel
 @onready var _turn_label: Label = %TurnLabel
@@ -218,7 +219,30 @@ func _on_end_turn_pressed() -> void:
 	_fsm.send_event("end_turn")
 
 func _on_execute_pressed() -> void:
+	_execute_shot()
 	_fsm.send_event("shoot")
+
+func _execute_shot() -> void:
+	if not multiplayer.is_server():
+		return
+
+	var field := _get_field_node()
+	if not field:
+		push_warning("[Match] Shot execution failed: no field node")
+		return
+
+	var marble: Marble = field.activate_shooter_marble()
+	if not is_instance_valid(marble):
+		push_warning("[Match] Shot execution failed: no shooter marble")
+		return
+
+	var direction := Vector2.LEFT.rotated(deg_to_rad(_rotation_value + _fine_tune_value))
+	var character: CharacterData = MatchManager.player_characters.get(MatchManager.active_player_id, null)
+	var power: float = character.power if character else 1.0
+	var impulse := direction * _flick_value * power * SHOT_IMPULSE_SCALE
+
+	marble.apply_central_impulse(impulse)
+	print("[Match] Shot executed — direction=%s flick=%.1f power=%.1f scale=%.0f impulse=%s" % [direction, _flick_value, power, SHOT_IMPULSE_SCALE, impulse])
 
 func _on_aim_back_pressed() -> void:
 	_fsm.send_event("back")

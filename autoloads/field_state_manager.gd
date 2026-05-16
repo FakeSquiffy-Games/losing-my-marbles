@@ -2,7 +2,7 @@ extends Node
 
 const DEFAULT_GRAVITY_MAGNITUDE: float = 0.0
 const DEFAULT_GRAVITY_DIRECTION: Vector2 = Vector2.ZERO
-const DEFAULT_LINEAR_DAMP: float = 2.0
+const DEFAULT_LINEAR_DAMP: float = 0.5
 
 var _map_base: Dictionary = {}
 var _terrain_delta: Dictionary = {}
