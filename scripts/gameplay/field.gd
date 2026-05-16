@@ -7,7 +7,7 @@ const MARBLE_SCENE := preload("res://scenes/gameplay/marble.tscn")
 
 const SHOOTER_FOCUS_PRIORITY: int = 20
 const BOARD_OVERVIEW_PRIORITY: int = 10
-const SHOOTER_SPAWN_DIST: float = FIELD_RADIUS - WALL_THICKNESS - Marble.RADIUS - 2.0
+const SHOOTER_SPAWN_DIST: float = FIELD_RADIUS + Marble.RADIUS + 6.0
 const SNAPSHOT_TICKS: int = 2
 const SNAPSHOT_INTERVAL: float = 2.0 / 60.0
 const SIMULATION_TIMEOUT: float = 10.0
@@ -168,7 +168,29 @@ func activate_shooter_marble() -> Marble:
 	return marble
 
 func _get_shooter_spawn_pos(player_id: int) -> Vector2:
-	return FIELD_CENTER + Vector2.RIGHT * SHOOTER_SPAWN_DIST
+	var preferred := FIELD_CENTER + Vector2.RIGHT * SHOOTER_SPAWN_DIST
+	var space_state := get_world_2d().direct_space_state
+	var shape := CircleShape2D.new()
+	shape.radius = Marble.RADIUS + 6.0
+
+	var query := PhysicsShapeQueryParameters2D.new()
+	query.shape = shape
+	query.collision_mask = 4294967295
+	query.transform = Transform2D(0, preferred)
+
+	if space_state.intersect_shape(query, 1).is_empty():
+		return preferred
+
+	var step := Marble.RADIUS * 2.0 + 4.0
+	for attempt: int in 12:
+		var angle := float(attempt) * 0.618033988749895
+		var dist := sqrt(float(attempt + 1)) * step
+		var candidate := preferred + Vector2.RIGHT.rotated(angle) * dist
+		query.transform = Transform2D(0, candidate)
+		if space_state.intersect_shape(query, 1).is_empty():
+			return candidate
+
+	return preferred
 
 func get_shooter_position() -> Vector2:
 	if is_instance_valid(_shooter_sample_marble):
@@ -196,7 +218,7 @@ func _setup_boundary_detector() -> void:
 
 	var shape := CollisionShape2D.new()
 	var circle := CircleShape2D.new()
-	circle.radius = FIELD_RADIUS + 30.0
+	circle.radius = FIELD_RADIUS
 	shape.shape = circle
 	shape.position = FIELD_CENTER
 

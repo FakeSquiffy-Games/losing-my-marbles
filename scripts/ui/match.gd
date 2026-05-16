@@ -307,12 +307,13 @@ func _show_phase_buttons() -> void:
 			_fsm.send_event("next_turn")
 
 func _reset_aim_controls() -> void:
-	_rotation_value = 0.0
 	_fine_tune_value = 0.0
 	_last_emitted_total = -INF
-	_rotation_label.text = "Field: 0"
+	_rotation_label.text = "Field: %.0f" % _rotation_value
 	_fine_tune_label.text = "Aim: 0"
 	_flick_slider.value = 0.0
+	_apply_map_rotation()
+	_emit_aim_if_changed()
 
 func _disable_buttons() -> void:
 	_ready_button.disabled = true

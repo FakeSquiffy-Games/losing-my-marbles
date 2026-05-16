@@ -134,14 +134,15 @@ func _draw() -> void:
 	draw_line(_trajectory_points[0], _trajectory_points[1], Color(1.0, 1.0, 1.0, 0.9), LINE_WIDTH, true)
 
 	if n >= 3:
-		# Pre-bounce line: entry → hit point
+		# Pre-bounce line: entry → hit point (or extension if no hit)
 		draw_line(_trajectory_points[1], _trajectory_points[2], Color(1.0, 0.95, 0.6, 0.6), LINE_WIDTH, true)
 
-		# Ghost marble marker at hit point
-		var ghost_color := _hit_color
-		ghost_color.a = GHOST_ALPHA
-		draw_circle(_hit_point, Marble.RADIUS, ghost_color)
-		draw_arc(_hit_point, Marble.RADIUS, 0, TAU, 16, ghost_color.darkened(0.4), 2.0)
+		# Ghost marble marker at hit point (only when there is an actual hit)
+		if _hit_point != Vector2.ZERO:
+			var ghost_color := _hit_color
+			ghost_color.a = GHOST_ALPHA
+			draw_circle(_hit_point, Marble.RADIUS, ghost_color)
+			draw_arc(_hit_point, Marble.RADIUS, 0, TAU, 16, ghost_color.darkened(0.4), 2.0)
 
 	if n >= 4:
 		# Post-bounce direction line (dashed)
