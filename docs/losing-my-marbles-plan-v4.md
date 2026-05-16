@@ -87,7 +87,7 @@ The following decisions are finalized. They must not be reversed without a docum
 | D7 | Session Discovery | Matchmaking uses 6-character UDP broadcast Session Keys exclusively. Direct IP connect fields are purged from the project. |
 | D8 | Object Lifecycle | If the launched shooting marble comes to rest without exiting the field boundary, it sheds its "shooter" state and becomes a standard field marble in the shared pool. If it exits the boundary, it is despawned and its SIMULATION-triggered effects do not fire. |
 | D9 | Marble Reference Safety | `GameState.active_marble` must be implemented as a computed property backed by a `WeakRef` internally to prevent use-after-free hazards during ejection or freeing. |
-| D10 | Input / Prediction Throttling | Trajectory prediction uses a **dual-throttle** mechanism: an emission gate in `match.gd` emits `aim_inputs_changed` only when the total angle changes by ≥ 0.5°; a receiver gate in `TrajectoryPreview` skips recalculation unless flick changes ≥ 0.01 OR rotation changes ≥ 0.5°. This prevents redundant redraws from either input source. |
+| D10 | Input / Prediction Throttling | Trajectory prediction uses a **dual-throttle** mechanism: an emission gate in `match.gd` emits `aim_inputs_changed` only when the total angle changes by ≥ 0.5°; a receiver gate in `TrajectoryPreview` skips recalculation on rotation delta < 0.5°. Flick changes do not affect the preview (fixed-length line). This prevents redundant redraws. |
 | D11 | Anti-Overlap Spawning | The `MatchManager` or a dedicated utility module must implement a `find_valid_position()` algorithm that checks for existing `RigidBody2D` overlaps before instantiating any new marble on the field. |
 | D12 | Discard Pile | Each player has a separate discard pile alongside their draw deck. Played cards move to the discard pile. When the draw deck is empty during a draw, the discard pile is shuffled and becomes the new draw deck. If both are empty, only the available cards are drawn (no crash). |
 | D13 | One-Marble-per-Shot Constraint | `MatchManager` tracks a per-turn boolean flag `marble_played`. This flag is set `true` when any Marble card is played and reset `false` after each SIMULATING phase concludes. The server rejects any `_request_play_card` RPC that would play a second Marble card while the flag is `true`. The UI disables Marble cards in the hand and displays a visual hint directing the player to the AIM phase once a marble is in play. |
@@ -355,7 +355,7 @@ The INIT state requires a populated marble pool to spawn field marbles, but the 
 
 #### 3.4 AIM Phase UI
 - **Map Rotation:** `set_map_rotation(degrees)` rotates the **Camera2D** nodes (`BoardOverviewCamera` and `ShooterFocusCamera`), not the Map scene. `Camera2D.ignore_rotation = false` is set in both `.tscn` and `_ready()`. Marbles stay fixed in world space.
-- **Shooter sample marble:** Spawned at AIM entry via `_spawn_shooter_sample()`, frozen at a position outside the field boundary on the right side (`SHOOTER_SPAWN_DIST = FIELD_RADIUS + Marble.RADIUS + 6.0`, ~241px). Anti-overlap placement via `intersect_shape` query with golden-angle spiral search (D11). Counter-rotated via `_update_shooter_marble_position()` so it appears visually fixed at the right edge. Despawned on AIM exit (except when transitioning to SIMULATING).
+- **Shooter sample marble:** Spawned at AIM entry via `_spawn_shooter_sample()`, frozen at a position outside the field boundary (`SHOOTER_SPAWN_DIST = FIELD_RADIUS + Marble.RADIUS + 6.0`, ~241px). Spawn position respects persisted `_current_rotation_degrees` (applied immediately after spawn via `_update_shooter_marble_position()`). Anti-overlap placement via `intersect_shape` query with golden-angle spiral search (D11). Counter-rotated so it appears visually fixed at the right edge. Despawned on AIM exit (except when transitioning to SIMULATING).
 - **Dual aim control sets** (built programmatically in `match.gd._build_aim_controls()`):
   - **Field rotation buttons** (±120°/sec) — coarse aim.
   - **Fine-tune buttons** (±60°/sec) — precise angular offset.
@@ -369,14 +369,17 @@ The INIT state requires a populated marble pool to spawn field marbles, but the 
 - **Algorithm:**
   1. Compute field entry point by intersecting the shot ray with the field boundary circle (shooter→field entry passes through wall without collision).
   2. From the entry point, check only field marbles (not the wall) using combined radii (`Marble.RADIUS * 2.0`) for the hit test.
-  3. On hit: record hit point, compute bounce direction (`dir.bounce(normal)`), draw a 100px dashed orange post-bounce direction indicator.
-  4. **One bounce limit** — the preview stops after the first predicted collision.
-  5. **Ghost marble marker:** translucent circle + arc at `Marble.RADIUS` (35% alpha) drawn at the predicted hit point.
-- **Dual-throttle mechanism:**
+  3. On hit: single amber line from shooter to the first hit point. Ghost marble marker (translucent circle + arc at `Marble.RADIUS`, 35% alpha) at the predicted hit point.
+  4. On no hit: line extends a fixed 2000px across the field.
+  5. **No bounce prediction** — preview stops at first collision (bounce direction proved inaccurate vs. physics simulation).
+  6. **No flick-power-based length** — line uses fixed `TRAJECTORY_EXTEND` for UX simplicity.
+- **Throttle mechanism:**
   - **Emission gate** in `match.gd._emit_aim_if_changed()`: only emits when `abs(total - last_emitted) > 0.5°`.
-  - **Receiver gate** in `TrajectoryPreview._on_aim_inputs_changed()`: only recalculates when flick changes ≥ 0.01 OR rotation changes ≥ 0.5°.
+  - **Receiver gate** in `TrajectoryPreview._on_aim_inputs_changed()`: rotation-only check (0.5° delta). Flick changes no longer trigger redraws.
+  - **Re-entry fix:** `_prev_rotation` reset to `-INF` on AIM entry; emission deferred via `call_deferred` to ensure shooter exists before first draw.
 - **Signal flow:** `match.gd` → `SignalBus.aim_inputs_changed(rotation_degrees, flick_power)` → `TrajectoryPreview._on_aim_inputs_changed()`.
 - Field exposes `get_shooter_position()` and `get_field_marble_positions()` for the preview to query.
+- Shooter spawn respects persisted rotation via `_current_rotation_degrees` tracking in `field.gd`.
 - See `scripts/gameplay/trajectory_preview.gd`.
 
 #### 3.6 Shot Execution
