@@ -94,7 +94,7 @@ The following decisions are finalized. They must not be reversed without a docum
 | D14 | Client Physics Snapshot Relay | During the SIMULATING phase, the server captures marble positions and velocities every 2 physics ticks into a snapshot buffer. When simulation fully resolves, the server transmits the buffer and authoritative final state to clients via one reliable RPC. Clients replay the buffer at the matching interval, interpolating between frames, then apply the authoritative final state to correct drift. No real-time streaming; no client-side physics prediction. |
 | D15 | KNOCKER Resolution | The `KNOCKER` target in `EffectData` resolves to the **player** who is currently the active shooter (i.e., the player whose shot is executing in the SIMULATING phase). This is tracked by `MatchManager` as `active_shooter_id: int` and passed as context to the `EffectHandler` at dispatch time. |
 | D16 | Public Marble Pool Refill | When the shared marble pool is exhausted, all previously ejected or used marbles are returned to the pool and reshuffled. This mirrors the private deck reshuffle behavior. The match never ends due to an empty pool. |
-| D17 | Field Boundary: Visual-Only, No Physical Wall | The field boundary is purely visual (drawn arc). There is no `StaticBody2D` collider at the field perimeter. Marbles freely roll off the field based on their velocity. The `BoundaryDetector` `Area2D` (radius = field_radius + 30px) is the sole mechanism for detecting when a marble has left the field. It tracks bodies via `body_entered` and only emits `marble_exited_boundary` for bodies previously known to be inside, preventing false-positive exit signals from physics transients. This replaces the original "circular wall" design because a physical wall would trap marbles that should exit, contradicting the game's core mechanic of marbles being knocked out of bounds. |
+| D17 | Field Boundary: Visual-Only, No Physical Wall | The field boundary is purely visual (drawn arc). There is no `StaticBody2D` collider at the field perimeter. Marbles freely roll off the field based on their velocity. The `BoundaryDetector` `Area2D` (radius = `FIELD_RADIUS`, aligned with the visual boundary) is the sole mechanism for detecting when a marble has left the field. It tracks bodies via `body_entered` and only emits `marble_exited_boundary` for bodies previously known to be inside, preventing false-positive exit signals from physics transients. This replaces the original "circular wall" design because a physical wall would trap marbles that should exit, contradicting the game's core mechanic of marbles being knocked out of bounds. |
 
 ---
 
@@ -328,7 +328,7 @@ The INIT state requires a populated marble pool to spawn field marbles, but the 
   - **Radius:** 220px, **Center:** (450, 250).
   - **Visual boundary:** Drawn via `_draw()` — filled circle + arc outline (12px thickness) for the field surface. This is purely visual; there is no physical wall. Marbles are free to roll off the field.
   - **Gravity zone:** `Area2D` with `CircleShape2D` (radius 260), positioned at field center, configured with `gravity_space_override = REPLACE` for `FieldStateManager` control. Covers shooter spawn position and boundary detection zone.
-  - **Boundary detector:** A separate `Area2D` (radius = field_radius + 30px overscan). Tracks bodies that enter via `body_entered` and only emits `SignalBus.marble_exited_boundary(marble)` when a tracked `Marble` exits (prevents false-positives from physics overlap transients). Marbles that leave this zone are considered off-field and should be despawned (D8).
+  - **Boundary detector:** A separate `Area2D` (radius = `FIELD_RADIUS`, aligned with the visual boundary). Tracks bodies that enter via `body_entered` and only emits `SignalBus.marble_exited_boundary(marble)` when a tracked `Marble` exits (prevents false-positives from physics overlap transients). Marbles that leave this zone are considered off-field and should be despawned (D8).
 - `find_valid_position()`: Physics overlap query via `intersect_shape` with golden-angle spiral search (D11), clamping candidates to field bounds. Used for all marble spawns.
 - See `scripts/gameplay/field.gd` for constants and implementation.
 
@@ -355,12 +355,12 @@ The INIT state requires a populated marble pool to spawn field marbles, but the 
 
 #### 3.4 AIM Phase UI
 - **Map Rotation:** `set_map_rotation(degrees)` rotates the **Camera2D** nodes (`BoardOverviewCamera` and `ShooterFocusCamera`), not the Map scene. `Camera2D.ignore_rotation = false` is set in both `.tscn` and `_ready()`. Marbles stay fixed in world space.
-- **Shooter sample marble:** Spawned at AIM entry via `_spawn_shooter_sample()`, frozen at a position just outside the field boundary on the right side (`FIELD_RADIUS + RADIUS + 12px`). Counter-rotated via `_update_shooter_marble_position()` so it appears visually fixed at the right edge. Despawned on AIM exit (except when transitioning to SIMULATING).
+- **Shooter sample marble:** Spawned at AIM entry via `_spawn_shooter_sample()`, frozen at a position outside the field boundary on the right side (`SHOOTER_SPAWN_DIST = FIELD_RADIUS + Marble.RADIUS + 6.0`, ~241px). Anti-overlap placement via `intersect_shape` query with golden-angle spiral search (D11). Counter-rotated via `_update_shooter_marble_position()` so it appears visually fixed at the right edge. Despawned on AIM exit (except when transitioning to SIMULATING).
 - **Dual aim control sets** (built programmatically in `match.gd._build_aim_controls()`):
   - **Field rotation buttons** (±120°/sec) — coarse aim.
   - **Fine-tune buttons** (±60°/sec) — precise angular offset.
   - **Flick Power slider** (0–10, step 0.1) — stored in `_flick_value`.
-- Total launch angle = `_rotation_value + _fine_tune_value`. Both `_rotation_value` and `_fine_tune_value` are reset to 0 on AIM entry.
+- Total launch angle = `_rotation_value + _fine_tune_value`. `_fine_tune_value` resets to 0 on AIM entry; `_rotation_value` persists across turns for UX continuity.
 - `character.power` value is read-only from `CharacterData` and is never exposed as an adjustable input (D5). It will be added to `_flick_value` at shot execution time.
 
 #### 3.5 Trajectory Prediction
@@ -396,20 +396,23 @@ On the server, during the SIMULATING phase:
 ```gdscript
 func _capture_snapshot() -> void:
     var frame: Dictionary = {}
-    for marble_id: int in _active_marble_ids:
-        var marble: RigidBody2D = _get_marble_by_id(marble_id)
-        if is_instance_valid(marble):
-            frame[marble_id] = {
-                "pos": marble.global_position,
-                "vel": marble.linear_velocity
+    for body in get_tree().get_nodes_in_group("field_marbles"):
+        if body is RigidBody2D:
+            frame[body.get_instance_id()] = {
+                "pos": body.global_position,
+                "vel": body.linear_velocity,
+                "avel": body.angular_velocity,
+                "pid": (body as Marble).owner_player_id,
             }
     _snapshot_buffer.append(frame)
 ```
 
-- Detect simulation completion by monitoring marble sleep states or velocities falling below a threshold. When simulation is complete:
+- Detect simulation completion by monitoring marble velocities falling below thresholds (`VELOCITY_THRESHOLD = 0.5`, `ANGULAR_VELOCITY_THRESHOLD = 0.1`) after `SLEEP_CHECK_DELAY = 0.3s`. Safety timeout at `SIMULATION_TIMEOUT = 10s`.
+- When simulation is complete:
   - Build `_final_state: Dictionary` with authoritative final positions of all remaining marbles.
-  - Emit `SignalBus.simulation_complete` to trigger SIMULATING → PLAY transition.
-  - Transmit snapshot buffer and final state to clients.
+  - Despawn marbles in `_exited_marbles` (tracked by `BoundaryDetector`), erase them from `final_state`.
+  - Emit `SignalBus.simulation_complete(final_state)` to trigger SIMULATING → PLAY transition.
+  - Transmit snapshot buffer and final state to clients via `_sync_snapshot_replay.rpc()`.
 
 #### 3.8 SIMULATING Phase: Client Snapshot Replay
 On clients, receive and replay the snapshot buffer:

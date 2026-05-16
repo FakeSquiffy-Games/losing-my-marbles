@@ -12,7 +12,7 @@ Complete reference of all variables governing physics interactions inside the pl
 | `FIELD_RADIUS` | 220 px | `field.gd:3` | Radius of the visible playing field |
 | `WALL_THICKNESS` | 12 px | `field.gd:5` | Thickness of the drawn boundary arc (visual only — no physical collider) |
 | Visible field inner radius | 208 px | derived | `FIELD_RADIUS - WALL_THICKNESS` |
-| `SHOOTER_SPAWN_DIST` | ~191 px | `field.gd:10` | `220 - 12 - 15 - 2` — shooter marble center distance from field center |
+| `SHOOTER_SPAWN_DIST` | 241 px | `field.gd:10` | `FIELD_RADIUS + Marble.RADIUS + 6.0 = 220 + 15 + 6` — shooter marble center distance from field center (outside field) |
 | Marble `RADIUS` | 15 px | `marble.gd:4` | Radius of every marble's `CircleShape2D` collider |
 
 ### Concentric Zones (all centered at FIELD_CENTER)
@@ -20,18 +20,16 @@ Complete reference of all variables governing physics interactions inside the pl
 ```
  FIELD_CENTER (450, 250)
      │
-     │  radius 191 ─ shooter spawn position (inside field)
      │  radius 208 ─ visible inner edge of boundary arc
-     │  radius 220 ─ outer edge of boundary arc (visual field edge)
-     │  radius 250 ─ BoundaryDetector Area2D (exit detection)
+     │  radius 220 ─ outer edge of boundary arc (visual field edge) + BoundaryDetector Area2D (exit detection, aligned)
+     │  radius 241 ─ shooter spawn position (outside field)
      │  radius 260 ─ GravityZone Area2D (space_override = REPLACE)
 ```
 
 | Zone | Radius | Type | Purpose |
 |---|---|---|---|
-| Shooter spawn | 191 | Position | Where the shooter sample marble appears during AIM |
-| Visual field | 208–220 | `_draw()` arc | Purely visual — no physical collider (D17) |
-| BoundaryDetector | 250 | `Area2D` (monitoring) | Tracks entries/exits; emits `marble_exited_boundary` on genuine exit |
+| Shooter spawn | 241 | Position | Where the shooter sample marble appears during AIM (outside field, with overlap detection) |
+| Visual field + BoundaryDetector | 220 | `_draw()` arc + `Area2D` (monitoring) | Visual boundary and exit detection are aligned at same radius (D17). Tracks entries/exits; emits `marble_exited_boundary` on genuine exit |
 | GravityZone | 260 | `Area2D` (REPLACE) | Overrides global gravity within this radius |
 | Viewport walls | x=70/830, y=-80/580 | `StaticBody2D` rect | Off-screen walls; kill marble velocity on contact (`bounce=0`, zeros `linear_velocity` + `angular_velocity`) |
 
@@ -42,8 +40,8 @@ Complete reference of all variables governing physics interactions inside the pl
     ┌─────────────────────────────────┐
     │                                 │
     │  FIELD_CENTER (450, 250)        │
-    │     radius 220 (visual)         │
-    │     radius 250 (detector)       │
+    │     radius 220 (visual + detector) │
+    │     radius 241 (shooter spawn)  │
     │                                 │
     │  Left wall       Right wall     │
     │  (x = 70)        (x = 830)      │
@@ -54,7 +52,7 @@ Complete reference of all variables governing physics interactions inside the pl
 
 ### Marble Exit & Despawn Flow
 
-1. Marble crosses `BoundaryDetector` (R=250) → `marble_exited_boundary` emitted, marble added to `_exited_marbles` array (preserves exit order for future effect resolution)
+1. Marble crosses `BoundaryDetector` (R=220, aligned with visual boundary) → `marble_exited_boundary` emitted, marble added to `_exited_marbles` array (preserves exit order for future effect resolution)
 2. Marble continues until it hits a viewport wall or settles via `linear_damp`
 3. Simulation completes (all remaining marbles below velocity threshold)
 4. `_finish_simulation()` despawns all marbles in `_exited_marbles` via `queue_free()`, erases them from `final_state`
@@ -281,7 +279,7 @@ Each `.tres` marble resource has a `PhysicsObjectData` sub-resource. Tune these 
 - Smaller field → faster-paced, more collisions, easier knockouts.
 - If you change `FIELD_RADIUS`, also adjust:
   - `FIELD_CENTER` (if repositioning)
-  - `SHOOTER_SPAWN_DIST` (auto-computed from FIELD_RADIUS)
+  - `SHOOTER_SPAWN_DIST` (auto-computed: `FIELD_RADIUS + Marble.RADIUS + 6.0`)
   - Gravity zone radius (`_update_gravity_shape()`)
   - Boundary detector radius (`_setup_boundary_detector()`)
   - Initial marble spawn positions (`match_fsm.gd:_spawn_initial_marbles()`)
