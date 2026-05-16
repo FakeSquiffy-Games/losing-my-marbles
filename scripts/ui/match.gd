@@ -311,9 +311,11 @@ func _reset_aim_controls() -> void:
 	_last_emitted_total = -INF
 	_rotation_label.text = "Field: %.0f" % _rotation_value
 	_fine_tune_label.text = "Aim: 0"
-	_flick_slider.value = 0.0
+	_flick_slider.set_value_no_signal(0.0)
+	_flick_label.text = "Flick Power: 0.0"
+	_flick_value = 0.0
 	_apply_map_rotation()
-	_emit_aim_if_changed()
+	_emit_aim_if_changed.call_deferred()
 
 func _disable_buttons() -> void:
 	_ready_button.disabled = true

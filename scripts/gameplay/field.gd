@@ -21,6 +21,7 @@ const SLEEP_CHECK_DELAY: float = 0.3
 
 var _shooter_cam: PhantomCamera2D
 var _shooter_sample_marble: Marble = null
+var _current_rotation_degrees: float = 0.0
 var _trajectory_preview: TrajectoryPreview
 var _bodies_inside_boundary: Array[int] = []
 var _exited_marbles: Array[Marble] = []
@@ -83,6 +84,7 @@ func set_linear_damp(damp: float) -> void:
 			body.linear_damp = damp
 
 func set_map_rotation(degrees: float) -> void:
+	_current_rotation_degrees = degrees
 	_board_cam.rotation_degrees = degrees
 	if _shooter_cam:
 		_shooter_cam.rotation_degrees = degrees
@@ -154,6 +156,7 @@ func _spawn_shooter_sample() -> void:
 	var pos := _get_shooter_spawn_pos(shooter_id)
 	_shooter_sample_marble = spawn_marble(data, shooter_id, pos, color)
 	_shooter_sample_marble.freeze = true
+	_update_shooter_marble_position(_current_rotation_degrees)
 
 func _despawn_shooter_sample() -> void:
 	if is_instance_valid(_shooter_sample_marble):
