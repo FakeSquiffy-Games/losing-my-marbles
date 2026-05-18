@@ -525,6 +525,7 @@ func _build_draw_hud() -> void:
 func _start_draw_sequence() -> void:
 	var active_id: int = MatchManager.active_player_id
 	_update_card_count_display()
+	var starting_count: int = MatchManager.get_draw_pile_count(active_id)
 
 	# 1. Animate mana bottle fill
 	_animate_mana_fill(active_id)
@@ -559,21 +560,40 @@ func _start_draw_sequence() -> void:
 		card.scale = Vector2(0.25, 0.25)
 		card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	_update_card_count_display()
+	# 5. Pre-calculate visual numbers to avoid Lambda state-capture bugs
+	var final_pile_count: int = MatchManager.get_draw_pile_count(active_id)
+	var sim_count: int = starting_count
+	var sequence_texts: Array[String] = []
+	for i: int in drawn.size():
+		sim_count -= 1
+		if sim_count < 0:
+			sim_count = final_pile_count + (drawn.size() - 1 - i)
+		sequence_texts.append(str(sim_count))
 
-	# 5. Staggered deal animation
+	# 6. Staggered deal animation using explicitly bound values
 	var stagger: float = 0.1
+	
+	# Define the Callable once before the loop
+	var update_label_func: Callable = func(txt: String) -> void:
+		_card_count_label.text = txt
+
 	for i: int in card_infos.size():
 		var info: Dictionary = card_infos[i]
 		var card: Card = info["card"]
 		var target: Vector2 = info["target"]
+		var step_text: String = sequence_texts[i]
+		
 		var t := create_tween()
 		t.tween_interval(i * stagger)
+		
+		# Call bind() directly on the Callable, which returns a new bound Callable
+		t.tween_callback(update_label_func.bind(step_text))
+		
 		t.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 		t.tween_property(card, "global_position", target, 0.35)
 		t.parallel().tween_property(card, "scale", Vector2.ONE, 0.35)
 
-	# 6. Wait for all cards to arrive, then add back to hand
+	# 7. Wait for all cards to arrive, then add back to hand
 	var total_duration := float(card_infos.size() - 1) * stagger + 0.35
 	await get_tree().create_timer(total_duration).timeout
 
@@ -584,10 +604,11 @@ func _start_draw_sequence() -> void:
 		_hand._held_cards.append(card)
 	_hand.update_card_ui()
 
+	_update_card_count_display() # Ensure final sync accuracy
 	_update_mana_bottle_display()
 	print("[Match] Dealt %d cards to hand (draw pile: %d)" % [drawn.size(), MatchManager.get_draw_pile_count(active_id)])
 
-	# 7. Auto-transition to PLAY
+	# 8. Auto-transition to PLAY
 	_fsm.send_event("draw_complete")
 
 func _animate_mana_fill(player_id: int) -> void:
