@@ -228,7 +228,7 @@ Created: `EffectData.gd`, `PhysicsObjectData.gd`, `CardData.gd`, `MarbleData.gd`
 
 ### Phase 4: Card Framework Integration 🔄 In Progress — 4.1 & 4.2 done
 
-**Goal:** Integrate the Card Framework plugin for UI card handling, implement full deck lifecycle (including discard pile), implement one-marble-per-shot constraint, implement public marble pool merge, implement contextual phase buttons with animations, and enable card play validation. *(Offline-only; authority-guarded RPC methods serve as the online injection skeleton.)*
+**Goal:** Integrate the Card Framework plugin for UI card handling, implement full deck lifecycle (including discard pile), implement one-marble-per-shot constraint, implement public marble pool merge, implement contextual phase buttons with animations, enable card play validation, automate the DRAW phase with mana/card-count HUD and card-deal animations, and animate card play resolution (enlarge → shrink → discard). *(Offline-only; authority-guarded RPC methods serve as the online injection skeleton.)*
 
 #### 4.1 Card Framework Setup ✅ Done
 - Installed **Card Framework 1.3.3**.
@@ -260,16 +260,30 @@ The authority (host in offline mode) validates every `_request_play_card` reques
 
 #### 4.6 Contextual Right-Panel Button Animations
 - Right-panel phase buttons slide-out/slide-in via Tween on FSM state change.
-- Button sets by state: DRAW (empty), PLAY (Aim + End Turn), AIM (Execute + Back).
+- Button sets by state: DRAW (empty — auto-transitions to PLAY via animation, see 4.9), PLAY (Aim + End Turn), AIM (Execute + Back).
 
 #### 4.7 Card Play Animations
-- When the authority confirms a card play, broadcast the card's visual before effect resolution.
-- Animation plays first; effect resolves only after animation completes.
+- When the authority confirms a card play, the card visual animates **before** effect resolution:
+  1. **Enlarge:** Card scales up (e.g., 1.0 → 1.3 over 0.25s, TRANS_BACK) centered on screen to signify its effects are being applied.
+  2. **Shrink & discard:** Card shrinks down (e.g., 1.3 → 0.0 over 0.3s, TRANS_QUAD) while tweening its position toward the discard pile box (see 4.9 for box positioning).
+  3. **Effect resolution:** `EffectHandler` dispatches only after the animation sequence completes.
+- The card does **not** remain in the PlayArea after being played.
 
 #### 4.8 Public Marble Pool Merge (Replaces Phase 2 Stub)
 - In INIT, `MarblePoolManager` collects all players' public `MarbleData` decks, merges, shuffles.
 - `get_marble()`: pops from shuffled pool. `return_marble()`: appends back.
 - `refill_pool()`: when empty, returns all ejected marbles to pool and reshuffles (D16).
+
+#### 4.9 DRAW Phase Automation & HUD
+The DRAW phase has no button — it auto-transitions to PLAY via animation. All HUD elements use Tweens for transitions.
+
+- **Mana Bottle (bottom-left):** A progress-bar styled as a bottle, positioned in the bottom-left corner. Displays current mana / max mana. When mana regenerates during DRAW, the bottle plays a "filling-up" animation (value tween, 0.5–0.8s, TRANS_SINE) with an accompanying liquid-rise shader or color-fill effect. Label inside or beside the bottle shows the numeric value (e.g., "3/5").
+- **Card Count Box (next to Mana Bottle):** A small box icon adjacent to the mana bottle displaying the number of remaining cards in the player's draw pile (e.g., "🃏 × 12"). Updates via signal when `DeckManager.draw_pile` changes.
+- **Card Deal Animation:** When the DRAW phase begins (after mana regen completes):
+  1. Cards spawn visually from the card count box position.
+  2. Cards tween along an arc path into the player's Hand (fan spread positions), one at a time with staggered delays (0.08–0.12s per card, TRANS_QUAD).
+  3. After the last card arrives, the FSM auto-transitions to PLAY via `send_event("draw_complete")`.
+- **FSM change:** The DRAW state emits `draw_started` on entry. Mana regen and card deal run as an animation sequence. On completion, the state machine automatically fires the `draw_complete` transition to PLAY — no player input required during DRAW.
 
 ---
 
@@ -434,6 +448,8 @@ const SNAPSHOT_REPLAY_INTERVAL: float = float(SNAPSHOT_CAPTURE_INTERVAL_TICKS) /
 | Added D18 (Offline-First Development) | Codifies the decision to defer online multiplayer to Phase 7 |
 | Added Phase 7 — Online Multiplayer | Consolidates all deferred online features: character-select fix, snapshot replay, RPC validation, integration tests |
 | Renumbered 3.8 → 3.8.1 (Client Marble Visual Infrastructure, Done) + deferred 3.8.2–3.8.3 to Phase 7 | 3.8.1 provides the injection point; full online replay requires Phase 7 fixes |
+| Added 4.9 (DRAW Phase Automation & HUD) | Mana bottle progress bar, card count box, card deal animation, auto-transition DRAW→PLAY |
+| Expanded 4.7 (Card Play Animations) | Card enlarge→shrink→discard animation sequence; card does not remain in PlayArea |
 | Phase 4, 5, 6 re-scoped as offline-only | Verification mode changed from "Host + Client" to "Offline Pass-and-Play" |
 | Updated D7, D14 with deferred-online annotations | Transparent tracking of what is implemented vs. deferred |
 | Updated Phase Completion Checklist | Added Phase 7 row, updated verification mode column |
