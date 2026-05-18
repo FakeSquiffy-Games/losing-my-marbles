@@ -1,7 +1,7 @@
 extends Control
 
 const PUBLIC_POOL_SIZE := 5
-const MIN_PRIVATE_DECK_SIZE := 1
+const PRIVATE_DECK_SIZE := 10
 const PASS_DEVICE_SCENE := preload("res://scenes/ui/pass_device.tscn")
 
 enum ListSource { AVAILABLE, PRIVATE_DECK, PUBLIC_POOL }
@@ -64,8 +64,6 @@ func _populate_filter() -> void:
 func _refresh_available_list(filter_type: int = 0) -> void:
 	_available_list.clear()
 	for card in _library.cards:
-		if _private_deck.has(card) or (card is MarbleData and _public_pool.has(card as MarbleData)):
-			continue
 		if _matches_filter(card, filter_type):
 			var display := _card_display_name(card)
 			var idx := _available_list.add_item(display)
@@ -135,24 +133,24 @@ func _get_selected_from_public() -> int:
 
 func _on_add_private_pressed() -> void:
 	var card := _get_selected_card()
-	if card == null:
+	if card == null or _private_deck.size() >= PRIVATE_DECK_SIZE:
 		return
-	_private_deck.append(card)
-	_private_list.add_item(_card_display_name(card))
-	_refresh_available_list(_card_type_filter.selected)
+		
+	var new_card := card.duplicate(true) as CardData
+	_private_deck.append(new_card)
+	_private_list.add_item(_card_display_name(new_card))
 
 
 func _on_add_public_pressed() -> void:
 	var card := _get_selected_card()
-	if card == null:
-		return
-	if not card is MarbleData:
+	if card == null or not card is MarbleData:
 		return
 	if _public_pool.size() >= PUBLIC_POOL_SIZE:
 		return
-	_public_pool.append(card as MarbleData)
-	_public_list.add_item(_card_display_name(card))
-	_refresh_available_list(_card_type_filter.selected)
+		
+	var new_card := card.duplicate(true) as MarbleData
+	_public_pool.append(new_card)
+	_public_list.add_item(_card_display_name(new_card))
 	_update_pool_status()
 
 
@@ -161,14 +159,12 @@ func _on_remove_pressed() -> void:
 	if private_idx >= 0:
 		_private_deck.remove_at(private_idx)
 		_private_list.remove_item(private_idx)
-		_refresh_available_list(_card_type_filter.selected)
 		return
 
 	var public_idx := _get_selected_from_public()
 	if public_idx >= 0:
 		_public_pool.remove_at(public_idx)
 		_public_list.remove_item(public_idx)
-		_refresh_available_list(_card_type_filter.selected)
 		_update_pool_status()
 
 
@@ -182,10 +178,21 @@ func _update_pool_status() -> void:
 
 func _validate_decks() -> String:
 	var errors: Array[String] = []
-	if _private_deck.size() < MIN_PRIVATE_DECK_SIZE:
-		errors.append("Private deck needs at least %d card(s)." % MIN_PRIVATE_DECK_SIZE)
-	if _public_pool.size() < PUBLIC_POOL_SIZE:
+	
+	if _private_deck.size() != PRIVATE_DECK_SIZE:
+		errors.append("Private deck must have exactly %d cards." % PRIVATE_DECK_SIZE)
+	else:
+		var has_marble := false
+		for card in _private_deck:
+			if card is MarbleData:
+				has_marble = true
+				break
+		if not has_marble:
+			errors.append("Private deck needs at least 1 Marble card.")
+			
+	if _public_pool.size() != PUBLIC_POOL_SIZE:
 		errors.append("Public marble pool must be full (%d/%d)." % [_public_pool.size(), PUBLIC_POOL_SIZE])
+		
 	return ", ".join(errors) if errors else ""
 
 
