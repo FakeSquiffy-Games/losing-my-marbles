@@ -226,7 +226,7 @@ Created: `EffectData.gd`, `PhysicsObjectData.gd`, `CardData.gd`, `MarbleData.gd`
 
 ---
 
-### Phase 4: Card Framework Integration 🔄 In Progress — 4.1 & 4.2 done
+### Phase 4: Card Framework Integration ✅ Complete
 
 **Goal:** Integrate the Card Framework plugin for UI card handling, implement full deck lifecycle (including discard pile), implement one-marble-per-shot constraint, implement public marble pool merge, implement contextual phase buttons with animations, enable card play validation, automate the DRAW phase with mana/card-count HUD and card-deal animations, and animate card play resolution (enlarge → shrink → discard). *(Offline-only; authority-guarded RPC methods serve as the online injection skeleton.)*
 
@@ -284,6 +284,8 @@ The DRAW phase has no button — it auto-transitions to PLAY via animation. All 
   2. Cards tween along an arc path into the player's Hand (fan spread positions), one at a time with staggered delays (0.08–0.12s per card, TRANS_QUAD).
   3. After the last card arrives, the FSM auto-transitions to PLAY via `send_event("draw_complete")`.
 - **FSM change:** The DRAW state emits `draw_started` on entry. Mana regen and card deal run as an animation sequence. On completion, the state machine automatically fires the `draw_complete` transition to PLAY — no player input required during DRAW.
+	
+	**Implementation note:** Arc-path deal animation was skipped — cards use straight-line tween from card-count box to hand (visually acceptable, no functional impact).
 
 ---
 
@@ -434,7 +436,7 @@ const SNAPSHOT_REPLAY_INTERVAL: float = float(SNAPSHOT_CAPTURE_INTERVAL_TICKS) /
 | Phase 1 — Lobby & Deck | ✅ Complete | Offline + partial online |
 | Phase 2 — Match FSM | ✅ Complete | Offline |
 | Phase 3 — Field & Aiming | ✅ Complete | Offline |
-| Phase 4 — Card Framework | 🔄 In Progress (4.1 & 4.2 done) | Offline |
+| Phase 4 — Card Framework | ✅ Complete | Offline |
 | Phase 5 — Effects & Multipliers | ⬜ Not Started | Offline |
 | Phase 6 — Polish & Testing | ⬜ Not Started | Offline |
 | Phase 7 — Online Multiplayer | ⬜ Not Started (Deferred) | Host + Client |
