@@ -29,3 +29,6 @@ signal simulation_complete(final_state: Dictionary)
 
 # -- Aim input events --
 signal aim_inputs_changed(rotation_degrees: float, flick_power: float)
+
+# -- Card play events --
+signal card_play_validated(card_name: String, success: bool)

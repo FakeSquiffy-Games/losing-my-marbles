@@ -43,6 +43,7 @@ var _fine_tune_direction: int = 0
 var _last_emitted_total: float = -INF
 var _card_library: CardLibrary
 var _card_data_cache: Array[CardData] = []
+var _card_lookup: Dictionary = {}
 
 func _ready() -> void:
 	_ready_button.pressed.connect(_on_ready_pressed)
@@ -62,6 +63,8 @@ func _ready() -> void:
 	_card_library = CardLibrary.new()
 	_card_library.load_cards()
 	_card_data_cache.assign(_card_library.cards)
+	for cd: CardData in _card_data_cache:
+		_card_lookup[cd.card_name] = cd
 
 	_build_aim_controls()
 
@@ -388,18 +391,71 @@ func _deal_cards() -> void:
 func _on_card_played(card: Card) -> void:
 	if not multiplayer.is_server():
 		return
-	var card_info: Dictionary = card.card_info
-	var card_data: CardData = card_info.get("card_data", null)
+	var card_data: CardData = card.card_info.get("card_data", null)
 	if card_data == null:
 		push_warning("[Match] Card played with no CardData")
+		_return_card_to_hand(card)
 		return
-	_request_play_card.rpc(card_data.card_name)
+
+	var error := _validate_card_play(card_data)
+	if not error.is_empty():
+		push_warning("[Match] Card play rejected: %s" % error)
+		_return_card_to_hand(card)
+		return
+
+	MatchManager.spend_mana(MatchManager.active_player_id, card_data.mana_cost)
+	if card_data.type == Enums.CardTypeEnum.MARBLE:
+		MatchManager.set_marble_played()
+
+	if card.card_container != null:
+		card.card_container.remove_card(card)
+	card.queue_free()
+
+	_update_hud()
+	SignalBus.card_play_validated.emit(card_data.card_name, true)
+	print("[Match] Card played: %s (mana: %d, marble_played: %s)" % [card_data.card_name, MatchManager.player_mana[MatchManager.active_player_id], MatchManager.marble_played])
 
 @rpc("any_peer", "call_local", "reliable")
 func _request_play_card(card_name: String) -> void:
 	if not multiplayer.is_server():
 		return
-	print("[Match] Card play requested: %s (validation stub — always accepted)" % card_name)
+
+	var sender_id: int = multiplayer.get_remote_sender_id()
+	if sender_id != MatchManager.active_player_id:
+		push_warning("[Match] Card play rejected: sender %d is not active player %d" % [sender_id, MatchManager.active_player_id])
+		return
+
+	var card_data: CardData = _card_lookup.get(card_name, null)
+	if card_data == null:
+		push_warning("[Match] Card play rejected: unknown card '%s'" % card_name)
+		return
+
+	var error := _validate_card_play(card_data)
+	if not error.is_empty():
+		push_warning("[Match] Card play rejected: %s" % error)
+		return
+
+	MatchManager.spend_mana(MatchManager.active_player_id, card_data.mana_cost)
+	if card_data.type == Enums.CardTypeEnum.MARBLE:
+		MatchManager.set_marble_played()
+	SignalBus.card_play_validated.emit(card_name, true)
+	print("[Match] Card played (RPC): %s (mana: %d)" % [card_name, MatchManager.player_mana[MatchManager.active_player_id]])
+
+func _validate_card_play(card_data: CardData) -> String:
+	if MatchManager.current_phase != Enums.MatchState.PLAY:
+		return "Not in PLAY phase (current: %s)" % _phase_name(MatchManager.current_phase)
+	if card_data.type == Enums.CardTypeEnum.MARBLE and MatchManager.marble_played:
+		return "Already played a marble this turn"
+	if card_data.mana_cost > MatchManager.player_mana.get(MatchManager.active_player_id, 0):
+		return "Not enough mana (need %d, have %d)" % [card_data.mana_cost, MatchManager.player_mana[MatchManager.active_player_id]]
+	return ""
+
+func _return_card_to_hand(card: Card) -> void:
+	if not is_instance_valid(card):
+		return
+	if _hand.has_card(card):
+		return
+	_hand.move_cards([card])
 
 func _exit_tree() -> void:
 	if SignalBus.phase_changed.is_connected(_on_phase_changed):
