@@ -33,7 +33,6 @@ func _ready() -> void:
 	_registry["set_gravity"] = _efx_set_gravity
 	_registry["apply_aoe"] = _efx_apply_aoe
 	_registry["clear_terrain"] = _efx_clear_terrain
-	print(_registry.keys())
 
 
 func dispatch_play_effects(card: CardData, context: PlayContext) -> void:
@@ -65,7 +64,9 @@ func dispatch_simulation_effects(marble: MarbleData, context: SimulationContext)
 		var targets: Array = _resolve_target(effect, context)
 		if targets.is_empty():
 			continue
-		callable.call(effect, targets, context)
+		var scaled := effect.duplicate() as EffectData
+		scaled.value *= context.multiplier
+		callable.call(scaled, targets, context)
 
 
 func _resolve_target(effect: EffectData, context: Variant) -> Array:
@@ -177,11 +178,12 @@ func _efx_clear_terrain(_effect: EffectData, _targets: Array, _ctx: Variant) -> 
 
 
 func _on_marble_knocked_out(marble_data: MarbleData, knocked_player_id: int) -> void:
+	MatchManager.increment_knockout()
 	var context := SimulationContext.new()
 	context.knocker_player_id = MatchManager.active_player_id
 	context.knocker_opp_player_id = 3 - MatchManager.active_player_id
 	context.field_state_manager = FieldStateManager
-	context.multiplier = MatchManager.get_active_multiplier() if MatchManager.has_method("get_active_multiplier") else 1.0
+	context.multiplier = MatchManager.get_active_multiplier()
 	dispatch_simulation_effects(marble_data, context)
 
 

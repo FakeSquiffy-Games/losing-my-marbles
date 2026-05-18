@@ -67,7 +67,6 @@ func _spawn_initial_marbles() -> void:
 func _on_draw_entered() -> void:
 	print("[FSM] >>> Draw state ENTERED — calling MatchManager.set_phase(DRAW)")
 	MatchManager.generate_mana(MatchManager.active_player_id)
-	MatchManager.reset_knockouts()
 	MatchManager.set_phase(Enums.MatchState.DRAW)
 
 func _on_play_entered() -> void:
@@ -80,6 +79,7 @@ func _on_aim_entered() -> void:
 
 func _on_simulating_entered() -> void:
 	print("[FSM] >>> Simulating state ENTERED")
+	MatchManager.reset_knockouts()
 	MatchManager.set_phase(Enums.MatchState.SIMULATING)
 
 func _on_simulating_exited() -> void:

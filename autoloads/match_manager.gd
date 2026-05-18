@@ -63,7 +63,16 @@ func increment_knockout() -> void:
 func reset_knockouts() -> void:
 	knockouts_this_turn = 0
 
+const MULTIPLIER_THRESHOLDS: Array[Dictionary] = [
+	{threshold = 7, multiplier = 3.0},
+	{threshold = 5, multiplier = 2.0},
+	{threshold = 3, multiplier = 1.5},
+]
+
 func get_active_multiplier() -> float:
+	for tier: Dictionary in MULTIPLIER_THRESHOLDS:
+		if knockouts_this_turn >= tier.threshold:
+			return tier.multiplier
 	return 1.0
 
 func set_turn_order(order: Array[int]) -> void:
