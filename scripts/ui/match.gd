@@ -51,9 +51,13 @@ var _previous_button_phase: int = -1
 var _card_library: CardLibrary
 var _card_data_cache: Array[CardData] = []
 var _card_lookup: Dictionary = {}
+var _mana_bottle: ProgressBar
+var _mana_bottle_label: Label
+var _card_count_box: Panel
+var _card_count_label: Label
+var _mana_panel: Panel
 
 func _ready() -> void:
-	_ready_button.pressed.connect(_on_ready_pressed)
 	_aim_button.pressed.connect(_on_aim_pressed)
 	_end_turn_button.pressed.connect(_on_end_turn_pressed)
 	_execute_button.pressed.connect(_on_execute_pressed)
@@ -79,6 +83,7 @@ func _ready() -> void:
 		MatchManager.init_player_deck(player_id, _card_data_cache)
 
 	_build_aim_controls()
+	_build_draw_hud()
 
 	if not multiplayer.is_server():
 		_disable_buttons()
@@ -238,13 +243,10 @@ func _on_phase_changed(phase: int) -> void:
 	_update_hand_visibility()
 
 	if phase == Enums.MatchState.DRAW and multiplayer.is_server():
-		_deal_cards()
+		_start_draw_sequence()
 
 	if phase == Enums.MatchState.PLAY and _table_frame.offset_top > 10.0:
 		_slide_table_frame_in()
-
-func _on_ready_pressed() -> void:
-	_fsm.send_event("ready")
 
 func _on_aim_pressed() -> void:
 	_fsm.send_event("aim")
@@ -320,6 +322,9 @@ func _update_hud() -> void:
 	var p2_mana: int = MatchManager.player_mana.get(2, 0)
 	_mana_label.text = "Mana  P1: %d  |  P2: %d" % [p1_mana, p2_mana]
 
+	_update_mana_bottle_display()
+	_update_card_count_display()
+
 func _show_phase_buttons() -> void:
 	var phase := MatchManager.current_phase
 	var is_offline := NetworkManager.session_key == "OFFLINE"
@@ -332,7 +337,6 @@ func _show_phase_buttons() -> void:
 
 	_play_area.mouse_filter = Control.MOUSE_FILTER_PASS if phase == Enums.MatchState.PLAY else Control.MOUSE_FILTER_IGNORE
 
-	_ready_button.disabled = not is_active
 	_aim_button.disabled = not is_active
 	_end_turn_button.disabled = not is_active
 	_execute_button.disabled = not is_active
@@ -396,7 +400,6 @@ func _animate_right_panel(phase: int, is_server_ok: bool) -> void:
 		_right_panel_tween.parallel().tween_property(ac, "position:x", _aim_controls_rest_x, 0.25)
 
 func _sync_button_visibility(phase: int, is_server_ok: bool) -> void:
-	_ready_button.visible = phase == Enums.MatchState.DRAW and is_server_ok
 	_aim_button.visible = phase == Enums.MatchState.PLAY and is_server_ok
 	_end_turn_button.visible = phase == Enums.MatchState.PLAY and is_server_ok
 	_execute_button.visible = phase == Enums.MatchState.AIM and is_server_ok
@@ -428,7 +431,6 @@ func _reset_aim_controls() -> void:
 	_emit_aim_if_changed.call_deferred()
 
 func _disable_buttons() -> void:
-	_ready_button.disabled = true
 	_aim_button.disabled = true
 	_end_turn_button.disabled = true
 	_execute_button.disabled = true
@@ -454,22 +456,168 @@ func _update_hand_visibility() -> void:
 	var is_play := phase == Enums.MatchState.PLAY
 	_hand.visible = is_play
 
-func _deal_cards() -> void:
+# -- Draw HUD (mana bottle + card count box) --
+
+func _build_draw_hud() -> void:
+	var vp_size := get_viewport_rect().size
+	var panel_style := StyleBoxFlat.new()
+	panel_style.bg_color = Color(0.05, 0.05, 0.1, 0.85)
+	panel_style.border_width_left = 2
+	panel_style.border_width_right = 2
+	panel_style.border_width_top = 2
+	panel_style.border_width_bottom = 2
+	panel_style.border_color = Color(0.4, 0.4, 0.6, 0.8)
+	panel_style.set_corner_radius_all(8)
+
+	_mana_panel = Panel.new()
+	_mana_panel.name = "ManaBottle"
+	_mana_panel.position = Vector2(16, vp_size.y - 80)
+	_mana_panel.size = Vector2(140, 56)
+	_mana_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_mana_panel.add_theme_stylebox_override("panel", panel_style)
+	add_child(_mana_panel)
+
+	_mana_bottle_label = Label.new()
+	_mana_bottle_label.name = "ManaLabel"
+	_mana_bottle_label.position = Vector2(8, 4)
+	_mana_bottle_label.size = Vector2(124, 16)
+	_mana_bottle_label.text = "Mana: 0/0"
+	_mana_bottle_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_mana_bottle_label.add_theme_font_size_override("font_size", 11)
+	_mana_bottle_label.add_theme_color_override("font_color", Color.WHITE)
+	_mana_panel.add_child(_mana_bottle_label)
+
+	_mana_bottle = ProgressBar.new()
+	_mana_bottle.name = "ManaBar"
+	_mana_bottle.position = Vector2(8, 24)
+	_mana_bottle.size = Vector2(124, 22)
+	_mana_bottle.min_value = 0
+	_mana_bottle.max_value = 100
+	_mana_bottle.value = 0
+	_mana_bottle.show_percentage = false
+	_mana_panel.add_child(_mana_bottle)
+
+	_card_count_box = Panel.new()
+	_card_count_box.name = "CardCountBox"
+	_card_count_box.position = Vector2(172, vp_size.y - 80)
+	_card_count_box.size = Vector2(64, 56)
+	_card_count_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_card_count_box.add_theme_stylebox_override("panel", panel_style)
+	add_child(_card_count_box)
+
+	_card_count_label = Label.new()
+	_card_count_label.name = "CardCountLabel"
+	_card_count_label.anchors_preset = Control.PRESET_FULL_RECT
+	_card_count_label.text = "0"
+	_card_count_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_card_count_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_card_count_label.add_theme_font_size_override("font_size", 26)
+	_card_count_label.add_theme_color_override("font_color", Color.WHITE)
+	_card_count_box.add_child(_card_count_label)
+
+func _start_draw_sequence() -> void:
+	var active_id: int = MatchManager.active_player_id
+	_update_card_count_display()
+
+	# 1. Animate mana bottle fill
+	_animate_mana_fill(active_id)
+	await get_tree().create_timer(0.7).timeout
+
+	# 2. Draw cards from deck
 	_hand.clear_cards()
-	var drawn: Array[CardData] = MatchManager.draw_cards(MatchManager.active_player_id, 5)
+	var drawn: Array[CardData] = MatchManager.draw_cards(active_id, 5)
 	if drawn.is_empty():
-		print("[Match] No cards available for dealing")
+		_fsm.send_event("draw_complete")
 		return
 
 	var factory: CardDataFactory = $CardManager.card_factory as CardDataFactory
 	if factory == null:
-		push_error("[Match] CardManager.card_factory is not a CardDataFactory")
+		_fsm.send_event("draw_complete")
 		return
 
-	for card_data: CardData in drawn:
-		factory.create_card_from_data(card_data, _hand)
+	# 3. Create cards in hand and record target positions
+	var card_infos: Array[Dictionary] = []
+	for cd: CardData in drawn:
+		var card := factory.create_card_from_data(cd, _hand)
+		card_infos.append({"card": card, "target": card.global_position})
 
-	print("[Match] Dealt %d cards to hand (draw pile: %d)" % [drawn.size(), MatchManager.get_draw_pile_count(MatchManager.active_player_id)])
+	# 4. Move all cards to the shared discard/deal origin
+	var origin := _get_discard_origin()
+	for info: Dictionary in card_infos:
+		var card: Card = info["card"]
+		if card.card_container != null:
+			card.card_container.remove_card(card)
+		card.reparent(self)
+		card.global_position = origin
+		card.scale = Vector2(0.25, 0.25)
+		card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	_update_card_count_display()
+
+	# 5. Staggered deal animation
+	var stagger: float = 0.1
+	for i: int in card_infos.size():
+		var info: Dictionary = card_infos[i]
+		var card: Card = info["card"]
+		var target: Vector2 = info["target"]
+		var t := create_tween()
+		t.tween_interval(i * stagger)
+		t.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		t.tween_property(card, "global_position", target, 0.35)
+		t.parallel().tween_property(card, "scale", Vector2.ONE, 0.35)
+
+	# 6. Wait for all cards to arrive, then add back to hand
+	var total_duration := float(card_infos.size() - 1) * stagger + 0.35
+	await get_tree().create_timer(total_duration).timeout
+
+	for info: Dictionary in card_infos:
+		var card: Card = info["card"]
+		card.reparent(_hand.get_node("Cards"))
+		card.card_container = _hand
+		_hand._held_cards.append(card)
+	_hand.update_card_ui()
+
+	_update_mana_bottle_display()
+	print("[Match] Dealt %d cards to hand (draw pile: %d)" % [drawn.size(), MatchManager.get_draw_pile_count(active_id)])
+
+	# 7. Auto-transition to PLAY
+	_fsm.send_event("draw_complete")
+
+func _animate_mana_fill(player_id: int) -> void:
+	var max_mana: int = _get_max_mana(player_id)
+	if max_mana <= 0:
+		return
+
+	_mana_bottle.max_value = max_mana
+	_mana_bottle_label.text = "Mana: 0/%d" % max_mana
+
+	var tween := create_tween()
+	tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_method(_set_mana_bottle_value, 0.0, float(max_mana), 0.6)
+	tween.tween_callback(func():
+		_mana_bottle_label.text = "Mana: %d/%d" % [MatchManager.player_mana[player_id], max_mana]
+	)
+
+func _set_mana_bottle_value(val: float) -> void:
+	_mana_bottle.value = val
+
+func _get_max_mana(player_id: int) -> int:
+	var character: CharacterData = MatchManager.player_characters.get(player_id, null)
+	return character.mana if character else 5
+
+func _update_mana_bottle_display() -> void:
+	var player_id: int = MatchManager.active_player_id
+	var max_mana: int = _get_max_mana(player_id)
+	_mana_bottle.max_value = max_mana
+	_mana_bottle.value = MatchManager.player_mana.get(player_id, 0)
+	_mana_bottle_label.text = "Mana: %d/%d" % [int(_mana_bottle.value), max_mana]
+
+func _update_card_count_display() -> void:
+	var player_id: int = MatchManager.active_player_id
+	var count: int = MatchManager.get_draw_pile_count(player_id)
+	_card_count_label.text = str(count)
+
+# -- Card play --
 
 func _on_card_played(card: Card) -> void:
 	if not multiplayer.is_server():
@@ -491,13 +639,41 @@ func _on_card_played(card: Card) -> void:
 	if card_data.type == Enums.CardTypeEnum.MARBLE:
 		MatchManager.set_marble_played()
 
-	if card.card_container != null:
-		card.card_container.remove_card(card)
-	card.queue_free()
+	_animate_card_play(card)
 
 	_update_hud()
 	SignalBus.card_play_validated.emit(card_data.card_name, true)
 	print("[Match] Card played: %s (mana: %d, marble_played: %s)" % [card_data.card_name, MatchManager.player_mana[MatchManager.active_player_id], MatchManager.marble_played])
+
+func _get_discard_origin() -> Vector2:
+	return _card_count_box.global_position + _card_count_box.size / 2.0
+
+func _kill_card_tweens(card: Card) -> void:
+	for child in card.get_children():
+		print(child)
+		#if child is TweenNode:
+			#child.kill()
+
+func _animate_card_play(card: Card) -> void:
+	if card.card_container != null:
+		card.card_container.remove_card(card)
+
+	card.reparent(self)
+	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_kill_card_tweens(card)
+
+	var discard_target := _get_discard_origin()
+
+	var tween := create_tween()
+	tween.tween_property(card, "scale", Vector2(1.3, 1.3), 0.4) \
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.set_parallel(true)
+	tween.tween_property(card, "scale", Vector2.ZERO, 0.3) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.tween_property(card, "global_position", discard_target, 0.3) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.set_parallel(false)
+	tween.tween_callback(card.queue_free)
 
 @rpc("any_peer", "call_local", "reliable")
 func _request_play_card(card_name: String) -> void:
@@ -556,10 +732,18 @@ func _exit_tree() -> void:
 		get_tree().root.size_changed.disconnect(_on_viewport_size_changed)
 
 func _on_viewport_size_changed() -> void:
+	# Reposition TableFrame if it's slid out
 	if _table_frame.offset_top > 10.0:
 		var vp_height := get_viewport_rect().size.y
 		_table_frame.offset_top = vp_height
 		_table_frame.offset_bottom = vp_height
+
+	# Reposition draw HUD elements
+	var vp_size := get_viewport_rect().size
+	if _mana_panel:
+		_mana_panel.position.y = vp_size.y - 80
+	if _card_count_box:
+		_card_count_box.position.y = vp_size.y - 80
 
 func _slide_table_frame_out() -> void:
 	var vp_height := get_viewport_rect().size.y

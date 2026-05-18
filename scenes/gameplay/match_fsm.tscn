@@ -34,7 +34,7 @@ metadata/_custom_type_script = "uid://cytafq8i1y8qm"
 [node name="ToPlay" type="Node" parent="RootState/Draw" unique_id=521793125]
 script = ExtResource("4_wgjvw")
 to = NodePath("../../Play")
-event = &"ready"
+event = &"draw_complete"
 delay_in_seconds = "0.0"
 metadata/_custom_type_script = "uid://cf1nsco3w0mf6"
 
