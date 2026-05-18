@@ -289,29 +289,33 @@ The DRAW phase has no button — it auto-transitions to PLAY via animation. All 
 
 ---
 
-### Phase 5: Effects & Multipliers ⬜ Not Started
+### Phase 5: Effects & Multipliers 🔄 In Progress
 
 **Goal:** Implement the `EffectHandler` with trigger-context dispatch, register all effect callables, implement KNOCKER routing, implement the multiplier system, and implement AOE duration tracking. *(Offline-only; architecture structurally identical to online.)*
 
-#### 5.1 EffectHandler
-- `EffectHandler.gd` (autoload or authority-side singleton):
-  - Maintains a `_registry: Dictionary` mapping `effect_id: String` to `Callable`.
-  - `dispatch_play_effects(card, context)` and `dispatch_simulation_effects(marble, context)`.
+#### 5.1 EffectHandler Skeleton + Context Objects ✅ Done
+- `EffectHandler.gd` registered as autoload in `project.godot`.
+- `PlayContext` and `SimulationContext` as inner `RefCounted` classes:
+  - `PlayContext`: `active_player_id`, `opponent_player_id`, `current_marble`, `field_state_manager`.
+  - `SimulationContext`: `knocker_player_id`, `knocker_opp_player_id`, `field_state_manager`, `multiplier`.
+- `_registry: Dictionary` (empty — populated in 5.3).
+- `dispatch_play_effects(card, context)`: iterates `card.effects`, validates `trigger == PLAY`, resolves targets via `_resolve_target()`, dispatches to registered `Callable`. Called from `match.gd` after card-play enlarge→shrink→discard animation completes.
+- `dispatch_simulation_effects(marble, context)`: iterates `marble.effects`, validates `trigger == SIMULATION`, resolves targets, dispatches to registered `Callable`. Triggered by `SignalBus.marble_knocked_out` — one call per knocked-out marble during any SIMULATING phase.
+- `_resolve_target()`: stub returning `[]` (full implementation in 5.2).
+- `SignalBus` wiring: `marble_knocked_out(marble_data, knocked_player_id)` emitted from `field.gd` `_finish_simulation()` for each non-shooter marble that exits the boundary. The shooter marble is excluded (D8: despawned without pool return or effects on its own shot; if it stays, it becomes a standard field marble and its effects fire when knocked out in a future turn).
+- `MatchManager.get_active_multiplier()`: stub returning `1.0` (full implementation in 5.4).
+- `MatchManager.set_active_shooter()` called in `match.gd` `_execute_shot()` for D15 compliance.
 
-#### 5.2 Context Objects
-- `PlayContext`: `active_player_id`, `opponent_player_id`, `current_marble`, `field_state_manager`.
-- `SimulationContext`: `knocker_player_id`, `knocker_opp_player_id`, `field_state_manager`, `multiplier`.
+#### 5.2 Target Routing
+- `_resolve_target(effect, context)` maps `TargetEnum` to player, marble, field, or field marbles per D3.
 
-#### 5.3 Target Routing
-- `_resolve_target(effect, context)` maps `TargetEnum` to player, marble, field, or field marbles.
+#### 5.3 Effect Registration
+- Register individual effect callables (`deal_damage`, `heal`, `spawn_obstacle`, `apply_aoe`, `set_linear_damp`, etc.) in `EffectHandler._ready()`.
 
-#### 5.4 Effect Registration
-- Register individual effect callables (`deal_damage`, `heal`, `spawn_obstacle`, `apply_aoe`, `set_linear_damp`, etc.) in `_ready()`.
-
-#### 5.5 Knockout Multiplier (D4)
+#### 5.4 Knockout Multiplier (D4)
 - `MatchManager` tracks `knockouts_this_turn`, reset each DRAW. Threshold table scales `effect.value`.
 
-#### 5.6 AOE Duration Tracking
+#### 5.5 AOE Duration Tracking
 - `tick_aoe_durations()` at END_TURN; remove expired AOEs, recalculate field stack.
 
 ---
@@ -437,7 +441,7 @@ const SNAPSHOT_REPLAY_INTERVAL: float = float(SNAPSHOT_CAPTURE_INTERVAL_TICKS) /
 | Phase 2 — Match FSM | ✅ Complete | Offline |
 | Phase 3 — Field & Aiming | ✅ Complete | Offline |
 | Phase 4 — Card Framework | ✅ Complete | Offline |
-| Phase 5 — Effects & Multipliers | ⬜ Not Started | Offline |
+| Phase 5 — Effects & Multipliers | 🔄 In Progress (5.1 done) | Offline |
 | Phase 6 — Polish & Testing | ⬜ Not Started | Offline |
 | Phase 7 — Online Multiplayer | ⬜ Not Started (Deferred) | Host + Client |
 
@@ -456,3 +460,5 @@ const SNAPSHOT_REPLAY_INTERVAL: float = float(SNAPSHOT_CAPTURE_INTERVAL_TICKS) /
 | Updated D7, D14 with deferred-online annotations | Transparent tracking of what is implemented vs. deferred |
 | Updated Phase Completion Checklist | Added Phase 7 row, updated verification mode column |
 | Project State Summary updated with Offline-First Development Decision | Documents the why and the guiding principle for code written in Phases 3–6 |
+| Merged 5.1 + 5.2 (EffectHandler + Context Objects), renumbered 5.3–5.6 → 5.2–5.5 | Context objects (PlayContext, SimulationContext) implemented as inner classes alongside EffectHandler skeleton in one sub-phase |
+| Clarified SIMULATION dispatch trigger | SIMULATION effects fire per knocked-out marble (not per shooter). Shooter excluded on its own shot per D8. Non-shooter marbles emit `marble_knocked_out` on exit. Single shot can trigger multiple SIMULATION dispatches. |
