@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="MarbleData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/marble_data.gd" id="1_marble"]
+[ext_resource type="Script" path="res://scripts/resources/physics_object_data.gd" id="2_phys"]
+[ext_resource type="Script" path="res://scripts/resources/effect_data.gd" id="3_efx"]
+
+[sub_resource type="Resource" id="phys_1"]
+script = ExtResource("2_phys")
+friction = 1.3
+stickiness = 0.0
+gravity_modifier = 1.0
+elasticity = 0.25
+weight = 1.8
+
+[sub_resource type="Resource" id="efx_1"]
+script = ExtResource("3_efx")
+effect_id = "restore_mana"
+value = 2.0
+target = 3
+trigger = 1
+
+[resource]
+script = ExtResource("1_marble")
+card_name = "Marble Conduit"
+type = 0
+mana_cost = 1
+effects = Array[ExtResource("3_efx")]([SubResource("efx_1")])
+physics = SubResource("phys_1")
