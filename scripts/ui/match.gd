@@ -41,6 +41,7 @@ var _rotating_direction: int = 0
 var _fine_tune_value: float = 0.0
 var _fine_tune_direction: int = 0
 var _last_emitted_total: float = -INF
+var _aim_pulse_tween: Tween
 var _card_library: CardLibrary
 var _card_data_cache: Array[CardData] = []
 var _card_lookup: Dictionary = {}
@@ -55,6 +56,7 @@ func _ready() -> void:
 
 	SignalBus.phase_changed.connect(_on_phase_changed)
 	SignalBus.device_passed.connect(_on_device_passed)
+	SignalBus.marble_played_changed.connect(_on_marble_played_changed)
 
 	_play_area.card_played.connect(_on_card_played)
 
@@ -277,6 +279,25 @@ func _on_device_passed(next_player_id: int) -> void:
 	MatchManager.set_active_player(next_player_id)
 	_fsm.send_event("next_turn")
 
+func _on_marble_played_changed(played: bool) -> void:
+	if played:
+		_start_aim_pulse()
+	else:
+		_stop_aim_pulse()
+
+func _start_aim_pulse() -> void:
+	if _aim_pulse_tween and _aim_pulse_tween.is_valid():
+		return
+	_aim_pulse_tween = create_tween()
+	_aim_pulse_tween.set_loops(0)
+	_aim_pulse_tween.tween_property(_aim_button, "scale", Vector2(1.08, 1.08), 0.3).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_aim_pulse_tween.tween_property(_aim_button, "scale", Vector2(1.0, 1.0), 0.3).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+func _stop_aim_pulse() -> void:
+	if _aim_pulse_tween and _aim_pulse_tween.is_valid():
+		_aim_pulse_tween.kill()
+	_aim_button.scale = Vector2(1.0, 1.0)
+
 func _update_hud() -> void:
 	_phase_label.text = _phase_name(MatchManager.current_phase)
 	_turn_label.text = "Turn: %d" % MatchManager.turn_number
@@ -466,6 +487,8 @@ func _exit_tree() -> void:
 		SignalBus.phase_changed.disconnect(_on_phase_changed)
 	if SignalBus.device_passed.is_connected(_on_device_passed):
 		SignalBus.device_passed.disconnect(_on_device_passed)
+	if SignalBus.marble_played_changed.is_connected(_on_marble_played_changed):
+		SignalBus.marble_played_changed.disconnect(_on_marble_played_changed)
 	if get_tree().root.size_changed.is_connected(_on_viewport_size_changed):
 		get_tree().root.size_changed.disconnect(_on_viewport_size_changed)
 

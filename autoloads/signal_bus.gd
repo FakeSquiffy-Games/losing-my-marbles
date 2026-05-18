@@ -32,3 +32,4 @@ signal aim_inputs_changed(rotation_degrees: float, flick_power: float)
 
 # -- Card play events --
 signal card_play_validated(card_name: String, success: bool)
+signal marble_played_changed(played: bool)

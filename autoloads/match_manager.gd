@@ -44,9 +44,11 @@ func is_server() -> bool:
 
 func set_marble_played() -> void:
 	marble_played = true
+	SignalBus.marble_played_changed.emit(true)
 
 func reset_marble_played() -> void:
 	marble_played = false
+	SignalBus.marble_played_changed.emit(false)
 
 func set_active_shooter(player_id: int) -> void:
 	active_shooter_id = player_id
