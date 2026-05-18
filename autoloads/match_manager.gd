@@ -91,7 +91,7 @@ func _request_phase_advance(requested_event: String) -> void:
 func _on_character_selected(player_id: int, character: CharacterData) -> void:
 	player_characters[player_id] = character
 	player_health[player_id] = character.health
-	player_mana[player_id] = 0
+	player_mana[player_id] = character.mana
 
 	if not multiplayer.is_server():
 		return
@@ -106,10 +106,12 @@ func _on_player_disconnected(_player_id: int) -> void:
 	player_health.erase(_player_id)
 	player_mana.erase(_player_id)
 
-func generate_mana(player_id: int) -> void:
+func regenerate_mana(player_id: int) -> void:
 	var character: CharacterData = player_characters.get(player_id, null)
 	if character:
-		player_mana[player_id] = character.mana
+		var current: int = player_mana.get(player_id, 0)
+		var max_mana: int = character.mana * 2
+		player_mana[player_id] = min(max_mana, current + character.mana)
 
 func spend_mana(player_id: int, amount: int) -> bool:
 	var current: int = player_mana.get(player_id, 0)

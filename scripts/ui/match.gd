@@ -633,7 +633,7 @@ func _set_mana_bottle_value(val: float) -> void:
 
 func _get_max_mana(player_id: int) -> int:
 	var character: CharacterData = MatchManager.player_characters.get(player_id, null)
-	return character.mana if character else 5
+	return character.mana * 2 if character else 6
 
 func _update_mana_bottle_display() -> void:
 	var player_id: int = MatchManager.active_player_id
