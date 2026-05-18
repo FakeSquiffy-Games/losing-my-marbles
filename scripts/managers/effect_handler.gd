@@ -147,7 +147,7 @@ func _efx_restore_mana(effect: EffectData, targets: Array, _ctx: Variant) -> voi
 	for target in targets:
 		var pid: int = target as int
 		var character: CharacterData = MatchManager.player_characters.get(pid, null)
-		var max_mana: int = character.mana if character else 5
+		var max_mana: int = character.mana * 2 if character else 6
 		var current: int = MatchManager.player_mana.get(pid, 0)
 		var new_mana: int = min(max_mana, current + int(effect.value))
 		MatchManager.player_mana[pid] = new_mana
