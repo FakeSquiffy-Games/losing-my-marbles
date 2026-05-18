@@ -357,9 +357,12 @@ func _finish_simulation() -> void:
 
 	for marble in _exited_marbles:
 		if is_instance_valid(marble):
-			final_state.erase(marble.get_instance_id())
-			if marble.marble_data:
+			var marble_id: int = marble.get_instance_id()
+			final_state.erase(marble_id)
+			var is_shooter: bool = marble_id == _active_shooter_id
+			if marble.marble_data and not is_shooter:
 				MarblePoolManager.return_marble(marble.marble_data)
+				SignalBus.marble_knocked_out.emit(marble.marble_data, marble.owner_player_id)
 			marble.remove_from_group("field_marbles")
 			marble.queue_free()
 	_exited_marbles.clear()
@@ -367,9 +370,12 @@ func _finish_simulation() -> void:
 	for body in get_tree().get_nodes_in_group("field_marbles"):
 		if body is Marble and body != _shooter_sample_marble and not body.is_queued_for_deletion():
 			if not _is_inside_field(body.global_position, Marble.RADIUS):
-				final_state.erase(body.get_instance_id())
-				if body.marble_data:
+				var body_id: int = body.get_instance_id()
+				final_state.erase(body_id)
+				var is_shooter: bool = body_id == _active_shooter_id
+				if body.marble_data and not is_shooter:
 					MarblePoolManager.return_marble(body.marble_data)
+					SignalBus.marble_knocked_out.emit(body.marble_data, body.owner_player_id)
 				body.remove_from_group("field_marbles")
 				body.queue_free()
 
@@ -386,13 +392,7 @@ func _resolve_marble_lifecycle(final_state: Dictionary) -> void:
 		return
 
 	if _active_shooter_id in final_state:
-		for body in get_tree().get_nodes_in_group("field_marbles"):
-			if body.get_instance_id() == _active_shooter_id and body is Marble:
-				var m := body as Marble
-				if m.marble_data:
-					MarblePoolManager.return_marble(m.marble_data)
-				print("[Field] Shooter marble (id=%d) stayed on field — returned to pool, now a standard field marble" % _active_shooter_id)
-				break
+		print("[Field] Shooter marble (id=%d) stayed on field — now a standard field marble" % _active_shooter_id)
 	else:
 		print("[Field] Shooter marble (id=%d) exited boundary — despawned, SIMULATION effects skipped" % _active_shooter_id)
 

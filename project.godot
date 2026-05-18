@@ -23,6 +23,7 @@ NetworkManager="*res://autoloads/network_manager.gd"
 MatchManager="*res://autoloads/match_manager.gd"
 FieldStateManager="*res://autoloads/field_state_manager.gd"
 MarblePoolManager="*res://autoloads/marble_pool_manager.gd"
+EffectHandler="*res://scripts/managers/effect_handler.gd"
 PhantomCameraManager="*uid://duq6jhf6unyis"
 
 [editor_plugins]

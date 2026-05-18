@@ -33,3 +33,6 @@ signal aim_inputs_changed(rotation_degrees: float, flick_power: float)
 # -- Card play events --
 signal card_play_validated(card_name: String, success: bool)
 signal marble_played_changed(played: bool)
+
+# -- Effect dispatch --
+signal marble_knocked_out(marble_data: MarbleData, knocked_player_id: int)

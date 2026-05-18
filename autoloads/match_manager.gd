@@ -63,6 +63,9 @@ func increment_knockout() -> void:
 func reset_knockouts() -> void:
 	knockouts_this_turn = 0
 
+func get_active_multiplier() -> float:
+	return 1.0
+
 func set_turn_order(order: Array[int]) -> void:
 	turn_order = order
 

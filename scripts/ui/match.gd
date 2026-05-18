@@ -278,6 +278,8 @@ func _execute_shot() -> void:
 		push_warning("[Match] Shot execution failed: no shooter marble")
 		return
 
+	MatchManager.set_active_shooter(MatchManager.active_player_id)
+
 	var direction := Vector2.LEFT.rotated(deg_to_rad(_rotation_value + _fine_tune_value))
 	var character: CharacterData = MatchManager.player_characters.get(MatchManager.active_player_id, null)
 	var power: float = character.power if character else 1.0
@@ -670,7 +672,7 @@ func _on_card_played(card: Card) -> void:
 		if field:
 			field.spawn_shooter_marble(card_data as MarbleData, MatchManager.active_player_id)
 
-	_animate_card_play(card)
+	_animate_card_play(card, card_data)
 
 	_update_hud()
 	SignalBus.card_play_validated.emit(card_data.card_name, true)
@@ -687,7 +689,7 @@ func _kill_card_tweens(card: Card) -> void:
 		card.move_tween.kill()
 		card.move_tween = null
 
-func _animate_card_play(card: Card) -> void:
+func _animate_card_play(card: Card, card_data: CardData) -> void:
 	if card.card_container != null:
 		card.card_container.remove_card(card)
 
@@ -701,6 +703,7 @@ func _animate_card_play(card: Card) -> void:
 	tween.tween_property(card, "scale", Vector2(1.3, 1.3), 0.4) \
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tween.tween_callback(_begin_card_discard.bind(card, discard_target))
+	tween.tween_callback(_dispatch_card_effects.bind(card_data))
 
 func _begin_card_discard(card: Card, discard_target: Vector2) -> void:
 	if not is_instance_valid(card):
@@ -713,6 +716,14 @@ func _begin_card_discard(card: Card, discard_target: Vector2) -> void:
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tween.set_parallel(false)
 	tween.tween_callback(card.queue_free)
+
+func _dispatch_card_effects(card_data: CardData) -> void:
+	var context := EffectHandler.PlayContext.new()
+	context.active_player_id = MatchManager.active_player_id
+	context.opponent_player_id = MatchManager.get_opponent_id()
+	context.current_marble = card_data if card_data is MarbleData else null
+	context.field_state_manager = FieldStateManager
+	EffectHandler.dispatch_play_effects(card_data, context)
 
 @rpc("any_peer", "call_local", "reliable")
 func _request_play_card(card_name: String) -> void:
