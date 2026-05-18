@@ -358,8 +358,20 @@ func _finish_simulation() -> void:
 	for marble in _exited_marbles:
 		if is_instance_valid(marble):
 			final_state.erase(marble.get_instance_id())
+			if marble.marble_data:
+				MarblePoolManager.return_marble(marble.marble_data)
+			marble.remove_from_group("field_marbles")
 			marble.queue_free()
 	_exited_marbles.clear()
+
+	for body in get_tree().get_nodes_in_group("field_marbles"):
+		if body is Marble and body != _shooter_sample_marble and not body.is_queued_for_deletion():
+			if not _is_inside_field(body.global_position, Marble.RADIUS):
+				final_state.erase(body.get_instance_id())
+				if body.marble_data:
+					MarblePoolManager.return_marble(body.marble_data)
+				body.remove_from_group("field_marbles")
+				body.queue_free()
 
 	_resolve_marble_lifecycle(final_state)
 
@@ -390,7 +402,7 @@ func _check_field_empty_and_refill() -> void:
 	var field_marbles := get_tree().get_nodes_in_group("field_marbles")
 	var has_marbles := false
 	for body in field_marbles:
-		if body is Marble and body != _shooter_sample_marble:
+		if body is Marble and body != _shooter_sample_marble and not body.is_queued_for_deletion():
 			has_marbles = true
 			break
 	if not has_marbles:
