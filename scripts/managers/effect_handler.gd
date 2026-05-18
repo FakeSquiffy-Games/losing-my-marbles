@@ -25,6 +25,15 @@ var _registry: Dictionary = {}
 
 func _ready() -> void:
 	SignalBus.marble_knocked_out.connect(_on_marble_knocked_out)
+	_registry["deal_damage"] = _efx_deal_damage
+	_registry["heal"] = _efx_heal
+	_registry["drain_mana"] = _efx_drain_mana
+	_registry["restore_mana"] = _efx_restore_mana
+	_registry["set_linear_damp"] = _efx_set_linear_damp
+	_registry["set_gravity"] = _efx_set_gravity
+	_registry["apply_aoe"] = _efx_apply_aoe
+	_registry["clear_terrain"] = _efx_clear_terrain
+	print(_registry.keys())
 
 
 func dispatch_play_effects(card: CardData, context: PlayContext) -> void:
@@ -102,6 +111,69 @@ func _resolve_simulation_target(effect: EffectData, ctx: SimulationContext) -> A
 		_:
 			push_warning("[EffectHandler] Target '%s' is not valid in SIMULATION context" % Enums.TargetEnum.keys()[effect.target])
 			return []
+
+
+func _efx_deal_damage(effect: EffectData, targets: Array, _ctx: Variant) -> void:
+	for target in targets:
+		var pid: int = target as int
+		var current: int = MatchManager.player_health.get(pid, 0)
+		var new_health: int = max(0, current - int(effect.value))
+		MatchManager.player_health[pid] = new_health
+		print("[EffectHandler] deal_damage: player %d takes %d damage (%d → %d)" % [pid, int(effect.value), current, new_health])
+
+
+func _efx_heal(effect: EffectData, targets: Array, _ctx: Variant) -> void:
+	for target in targets:
+		var pid: int = target as int
+		var character: CharacterData = MatchManager.player_characters.get(pid, null)
+		var max_hp: int = character.health if character else 100
+		var current: int = MatchManager.player_health.get(pid, 0)
+		var new_health: int = min(max_hp, current + int(effect.value))
+		MatchManager.player_health[pid] = new_health
+		print("[EffectHandler] heal: player %d restored %d health (%d → %d)" % [pid, int(effect.value), current, new_health])
+
+
+func _efx_drain_mana(effect: EffectData, targets: Array, _ctx: Variant) -> void:
+	for target in targets:
+		var pid: int = target as int
+		var current: int = MatchManager.player_mana.get(pid, 0)
+		var new_mana: int = max(0, current - int(effect.value))
+		MatchManager.player_mana[pid] = new_mana
+		print("[EffectHandler] drain_mana: player %d loses %d mana (%d → %d)" % [pid, int(effect.value), current, new_mana])
+
+
+func _efx_restore_mana(effect: EffectData, targets: Array, _ctx: Variant) -> void:
+	for target in targets:
+		var pid: int = target as int
+		var character: CharacterData = MatchManager.player_characters.get(pid, null)
+		var max_mana: int = character.mana if character else 5
+		var current: int = MatchManager.player_mana.get(pid, 0)
+		var new_mana: int = min(max_mana, current + int(effect.value))
+		MatchManager.player_mana[pid] = new_mana
+		print("[EffectHandler] restore_mana: player %d gains %d mana (%d → %d)" % [pid, int(effect.value), current, new_mana])
+
+
+func _efx_set_linear_damp(effect: EffectData, _targets: Array, _ctx: Variant) -> void:
+	FieldStateManager.set_terrain_delta("linear_damp", effect.value)
+	print("[EffectHandler] set_linear_damp: field linear_damp terrain delta = %.2f" % effect.value)
+
+
+func _efx_set_gravity(effect: EffectData, _targets: Array, _ctx: Variant) -> void:
+	FieldStateManager.set_terrain_delta("gravity_magnitude", effect.value)
+	print("[EffectHandler] set_gravity: field gravity terrain delta = %.2f" % effect.value)
+
+
+func _efx_apply_aoe(effect: EffectData, _targets: Array, _ctx: Variant) -> void:
+	var duration: int = 2
+	var delta: Dictionary = {"linear_damp": effect.value}
+	FieldStateManager.add_aoe_delta(delta, duration)
+	print("[EffectHandler] apply_aoe: linear_damp AOE delta %.2f for %d turns" % [effect.value, duration])
+
+
+func _efx_clear_terrain(_effect: EffectData, _targets: Array, _ctx: Variant) -> void:
+	FieldStateManager.clear_terrain_delta("linear_damp")
+	FieldStateManager.clear_terrain_delta("gravity_magnitude")
+	print("[EffectHandler] clear_terrain: cleared all terrain deltas")
 
 
 func _on_marble_knocked_out(marble_data: MarbleData, knocked_player_id: int) -> void:
