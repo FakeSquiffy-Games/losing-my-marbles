@@ -471,7 +471,7 @@ func _build_draw_hud() -> void:
 
 	_mana_panel = Panel.new()
 	_mana_panel.name = "ManaBottle"
-	_mana_panel.position = Vector2(16, vp_size.y - 80)
+	_mana_panel.position = Vector2(96, vp_size.y - 80)
 	_mana_panel.size = Vector2(140, 56)
 	_mana_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_mana_panel.add_theme_stylebox_override("panel", panel_style)
@@ -499,7 +499,7 @@ func _build_draw_hud() -> void:
 
 	_card_count_box = Panel.new()
 	_card_count_box.name = "CardCountBox"
-	_card_count_box.position = Vector2(172, vp_size.y - 80)
+	_card_count_box.position = Vector2(16, vp_size.y - 80)
 	_card_count_box.size = Vector2(64, 56)
 	_card_count_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_card_count_box.add_theme_stylebox_override("panel", panel_style)
@@ -649,10 +649,12 @@ func _get_discard_origin() -> Vector2:
 	return _card_count_box.global_position + _card_count_box.size / 2.0
 
 func _kill_card_tweens(card: Card) -> void:
-	for child in card.get_children():
-		print(child)
-		#if child is TweenNode:
-			#child.kill()
+	if card.hover_tween and card.hover_tween.is_valid():
+		card.hover_tween.kill()
+		card.hover_tween = null
+	if card.move_tween and card.move_tween.is_valid():
+		card.move_tween.kill()
+		card.move_tween = null
 
 func _animate_card_play(card: Card) -> void:
 	if card.card_container != null:
@@ -667,6 +669,12 @@ func _animate_card_play(card: Card) -> void:
 	var tween := create_tween()
 	tween.tween_property(card, "scale", Vector2(1.3, 1.3), 0.4) \
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_callback(_begin_card_discard.bind(card, discard_target))
+
+func _begin_card_discard(card: Card, discard_target: Vector2) -> void:
+	if not is_instance_valid(card):
+		return
+	var tween := create_tween()
 	tween.set_parallel(true)
 	tween.tween_property(card, "scale", Vector2.ZERO, 0.3) \
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
