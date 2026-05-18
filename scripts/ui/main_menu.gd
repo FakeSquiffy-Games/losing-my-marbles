@@ -16,6 +16,7 @@ func _on_online_pressed() -> void:
 
 func _on_offline_pressed() -> void:
 	NetworkManager.create_offline_game()
+	MatchManager.pre_match_player_id = 1
 	get_tree().change_scene_to_file("res://scenes/ui/character_select.tscn")
 
 func _on_deck_builder_pressed() -> void:

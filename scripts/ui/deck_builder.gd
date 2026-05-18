@@ -2,6 +2,7 @@ extends Control
 
 const PUBLIC_POOL_SIZE := 5
 const MIN_PRIVATE_DECK_SIZE := 1
+const PASS_DEVICE_SCENE := preload("res://scenes/ui/pass_device.tscn")
 
 enum ListSource { AVAILABLE, PRIVATE_DECK, PUBLIC_POOL }
 
@@ -15,13 +16,20 @@ enum ListSource { AVAILABLE, PRIVATE_DECK, PUBLIC_POOL }
 @onready var _back_button: Button = %BackButton
 @onready var _ready_button: Button = %ReadyButton
 @onready var _card_type_filter: OptionButton = %CardTypeFilter
+@onready var _title_label: Label = %TitleLabel
 
 var _library: CardLibrary
 var _private_deck: Array[CardData] = []
 var _public_pool: Array[MarbleData] = []
+var _player_id: int = 1
+var _pass_device_active: bool = false
 
 
 func _ready() -> void:
+	_player_id = MatchManager.pre_match_player_id if MatchManager.pre_match_player_id > 0 else 1
+	if _title_label:
+		_title_label.text = "Player %d — Build Your Decks" % _player_id
+
 	_add_private_button.pressed.connect(_on_add_private_pressed)
 	_add_public_button.pressed.connect(_on_add_public_pressed)
 	_remove_button.pressed.connect(_on_remove_pressed)
@@ -182,14 +190,32 @@ func _validate_decks() -> String:
 
 
 func _on_ready_pressed() -> void:
+	if _pass_device_active:
+		return
 	var error := _validate_decks()
 	if error:
 		_pool_status_label.text = error
 		_pool_status_label.modulate = Color.RED
 		return
-	# TODO Phase 4: submit decks to server via RPC for authoritative validation
-	print("[DeckBuilder] Decks validated — proceeding to match")
-	get_tree().change_scene_to_file("res://scenes/ui/match.tscn")
+
+	MatchManager.set_player_decks(_player_id, _private_deck.duplicate(), _public_pool.duplicate())
+	print("[DeckBuilder] Player %d decks stored — private: %d, public: %d" % [_player_id, _private_deck.size(), _public_pool.size()])
+
+	SignalBus.device_passed.connect(_on_device_passed, CONNECT_ONE_SHOT)
+	_pass_device_active = true
+
+	var pass_device := PASS_DEVICE_SCENE.instantiate()
+	pass_device.setup(_player_id)
+	add_child(pass_device)
+
+
+func _on_device_passed(_next_player_id: int) -> void:
+	if _player_id == 1:
+		MatchManager.pre_match_player_id = 2
+		get_tree().change_scene_to_file("res://scenes/ui/character_select.tscn")
+	else:
+		MatchManager.pre_match_player_id = 0
+		get_tree().change_scene_to_file("res://scenes/ui/match.tscn")
 
 
 func _on_back_pressed() -> void:

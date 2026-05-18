@@ -14,6 +14,10 @@ var player_characters: Dictionary = {}
 var player_decks: Dictionary = {}
 var _pending_characters: Dictionary = {}
 
+var pre_match_player_id: int = 1
+var player_public_pools: Dictionary = {}
+var player_private_cards: Dictionary = {}
+
 func _ready() -> void:
 	SignalBus.character_selected.connect(_on_character_selected)
 	SignalBus.player_disconnected.connect(_on_player_disconnected)
@@ -144,6 +148,10 @@ func end_turn_return_hand_to_draw(player_id: int) -> void:
 func get_draw_pile_count(player_id: int) -> int:
 	var deck: DeckManager = player_decks.get(player_id, null)
 	return deck.get_draw_pile_count() if deck else 0
+
+func set_player_decks(player_id: int, private_cards: Array[CardData], public_marbles: Array[MarbleData]) -> void:
+	player_private_cards[player_id] = private_cards
+	player_public_pools[player_id] = public_marbles
 
 func _exit_tree() -> void:
 	if SignalBus.character_selected.is_connected(_on_character_selected):

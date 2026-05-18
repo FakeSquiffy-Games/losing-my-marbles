@@ -80,7 +80,12 @@ func _ready() -> void:
 	for cd: CardData in _card_data_cache:
 		_card_lookup[cd.card_name] = cd
 	for player_id: int in [1, 2]:
-		MatchManager.init_player_deck(player_id, _card_data_cache)
+		MatchManager.init_player_deck(player_id, MatchManager.player_private_cards.get(player_id, []))
+
+	MarblePoolManager.init_pool(
+		MatchManager.player_public_pools.get(1, []),
+		MatchManager.player_public_pools.get(2, [])
+	)
 
 	_build_aim_controls()
 	_build_draw_hud()
@@ -292,8 +297,10 @@ func _on_device_passed(next_player_id: int) -> void:
 
 func _on_marble_played_changed(played: bool) -> void:
 	if played:
+		_aim_button.disabled = false
 		_start_aim_pulse()
 	else:
+		_aim_button.disabled = true
 		_stop_aim_pulse()
 
 func _start_aim_pulse() -> void:
@@ -337,7 +344,7 @@ func _show_phase_buttons() -> void:
 
 	_play_area.mouse_filter = Control.MOUSE_FILTER_PASS if phase == Enums.MatchState.PLAY else Control.MOUSE_FILTER_IGNORE
 
-	_aim_button.disabled = not is_active
+	_aim_button.disabled = not is_active or not MatchManager.marble_played
 	_end_turn_button.disabled = not is_active
 	_execute_button.disabled = not is_active
 	_aim_back_button.disabled = not is_active
@@ -638,6 +645,9 @@ func _on_card_played(card: Card) -> void:
 	MatchManager.discard_card(MatchManager.active_player_id, card_data)
 	if card_data.type == Enums.CardTypeEnum.MARBLE:
 		MatchManager.set_marble_played()
+		var field := _get_field_node()
+		if field:
+			field.spawn_shooter_marble(card_data as MarbleData, MatchManager.active_player_id)
 
 	_animate_card_play(card)
 

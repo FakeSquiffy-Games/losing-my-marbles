@@ -88,6 +88,7 @@ func _on_simulating_exited() -> void:
 
 func _on_end_turn_entered() -> void:
 	print("[FSM] >>> EndTurn state ENTERED")
+	MatchManager.reset_marble_played()
 	MatchManager.player_mana[MatchManager.active_player_id] = 0
 	MatchManager.end_turn_return_hand_to_draw(MatchManager.active_player_id)
 	FieldStateManager.tick_aoe_durations()

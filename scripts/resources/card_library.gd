@@ -12,7 +12,8 @@ func load_cards() -> void:
 	cards.clear()
 	for res: Resource in _load_tres_files(CARDS_DIR):
 		if res is CardData:
-			cards.append(res)
+			for i in range(5):
+				cards.append(res.duplicate(true))
 
 
 func load_characters() -> void:

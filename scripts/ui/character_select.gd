@@ -1,7 +1,5 @@
 extends Control
 
-const PASS_DEVICE_SCENE := preload("res://scenes/ui/pass_device.tscn")
-
 @onready var _character_container: HBoxContainer = %CharacterContainer
 @onready var _confirm_button: Button = %ConfirmButton
 @onready var _status_label: Label = %StatusLabel
@@ -12,17 +10,17 @@ var _characters: Array[CharacterData] = []
 var _character_cards: Array[Control] = []
 var _selected_index: int = -1
 var _current_selecting_player: int = 1
-var _ready_for_match: bool = false
 
 func _ready() -> void:
 	_confirm_button.pressed.connect(_on_confirm_pressed)
 	_back_button.pressed.connect(_on_back_pressed)
-	SignalBus.match_started.connect(_on_match_started)
-	SignalBus.device_passed.connect(_on_device_passed)
 
 	_library = CardLibrary.new()
 	_library.load_characters()
 	_characters = _library.characters
+
+	_current_selecting_player = MatchManager.pre_match_player_id
+	_status_label.text = "Player %d: Select your character" % _current_selecting_player
 
 	_populate_ui()
 
@@ -84,41 +82,7 @@ func _on_confirm_pressed() -> void:
 		_request_character_select.rpc_id(1, _selected_index, _current_selecting_player)
 	SignalBus.character_selected.emit(_current_selecting_player, chosen)
 
-	if NetworkManager.session_key == "OFFLINE":
-		if _current_selecting_player == 1:
-			_show_pass_device(1)
-		else:
-			_status_label.text = "Waiting for match to start..."
-	else:
-		_status_label.text = "Waiting for opponent..."
-
-func _show_pass_device(from_player: int) -> void:
-	var pass_device := PASS_DEVICE_SCENE.instantiate()
-	pass_device.setup(from_player)
-	add_child(pass_device)
-
-func _on_device_passed(next_player_id: int) -> void:
-	if NetworkManager.session_key != "OFFLINE":
-		return
-
-	if _ready_for_match:
-		get_tree().change_scene_to_file("res://scenes/ui/match.tscn")
-		return
-
-	if next_player_id == 2:
-		_current_selecting_player = 2
-		_selected_index = -1
-		_confirm_button.disabled = true
-		_status_label.text = "Player 2: Select your character"
-		for card in _character_cards:
-			card.modulate = Color.WHITE
-
-func _on_match_started() -> void:
-	if NetworkManager.session_key == "OFFLINE":
-		_ready_for_match = true
-		_show_pass_device(2)
-		return
-	get_tree().change_scene_to_file("res://scenes/ui/match.tscn")
+	get_tree().change_scene_to_file("res://scenes/ui/deck_builder.tscn")
 
 @rpc("any_peer", "call_local")
 func _request_character_select(char_index: int, selecting_player: int) -> void:
@@ -138,9 +102,3 @@ func _sync_character_select(player_id: int, char_index: int) -> void:
 func _on_back_pressed() -> void:
 	NetworkManager.reset_network()
 	get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
-
-func _exit_tree() -> void:
-	if SignalBus.match_started.is_connected(_on_match_started):
-		SignalBus.match_started.disconnect(_on_match_started)
-	if SignalBus.device_passed.is_connected(_on_device_passed):
-		SignalBus.device_passed.disconnect(_on_device_passed)

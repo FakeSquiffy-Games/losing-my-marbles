@@ -165,8 +165,9 @@ func _on_phase_changed_for_camera(phase: int) -> void:
 func _on_phase_changed_for_shooter_marble(phase: int) -> void:
 	var match_phase: Enums.MatchState = phase as Enums.MatchState
 	if match_phase == Enums.MatchState.AIM:
-		_spawn_shooter_sample()
-	elif match_phase != Enums.MatchState.SIMULATING:
+		if is_instance_valid(_shooter_sample_marble):
+			_update_shooter_marble_position(_current_rotation_degrees)
+	elif match_phase == Enums.MatchState.END_TURN:
 		_despawn_shooter_sample()
 
 func _spawn_shooter_sample() -> void:
@@ -184,6 +185,18 @@ func _despawn_shooter_sample() -> void:
 	if is_instance_valid(_shooter_sample_marble):
 		_shooter_sample_marble.queue_free()
 	_shooter_sample_marble = null
+
+func spawn_shooter_marble(data: MarbleData, player_id: int) -> void:
+	if is_instance_valid(_shooter_sample_marble):
+		_shooter_sample_marble.queue_free()
+		_shooter_sample_marble = null
+
+	var color := Color.RED if player_id == 1 else Color.BLUE
+	var pos := _get_shooter_spawn_pos(player_id)
+	_shooter_sample_marble = spawn_marble(data, player_id, pos, color)
+	_shooter_sample_marble.freeze = true
+	_update_shooter_marble_position(_current_rotation_degrees)
+	print("[Field] Shooter marble spawned for player %d from card '%s'" % [player_id, data.card_name])
 
 func activate_shooter_marble() -> Marble:
 	var marble := _shooter_sample_marble
@@ -350,6 +363,8 @@ func _finish_simulation() -> void:
 
 	_resolve_marble_lifecycle(final_state)
 
+	_check_field_empty_and_refill()
+
 	print("[Field] Simulation finished — %d snapshots, %d marbles remaining" % [_snapshot_buffer.size(), final_state.size()])
 	_sync_snapshot_replay.rpc(_snapshot_buffer, final_state)
 	SignalBus.simulation_complete.emit(final_state)
@@ -370,6 +385,38 @@ func _resolve_marble_lifecycle(final_state: Dictionary) -> void:
 		print("[Field] Shooter marble (id=%d) exited boundary — despawned, SIMULATION effects skipped" % _active_shooter_id)
 
 	_active_shooter_id = 0
+
+func _check_field_empty_and_refill() -> void:
+	var field_marbles := get_tree().get_nodes_in_group("field_marbles")
+	var has_marbles := false
+	for body in field_marbles:
+		if body is Marble and body != _shooter_sample_marble:
+			has_marbles = true
+			break
+	if not has_marbles:
+		print("[Field] Field empty — spawning 6 marbles from pool")
+		_spawn_field_marbles_from_pool(6)
+
+func _spawn_field_marbles_from_pool(count: int) -> void:
+	var marbles := MarblePoolManager.draw_random(count)
+	if marbles.is_empty():
+		push_warning("[Field] Cannot refill field — pool returned no marbles")
+		return
+
+	const MARGIN: float = Marble.RADIUS + WALL_THICKNESS + 10.0
+	const SPAWN_RADIUS: float = FIELD_RADIUS - MARGIN
+
+	for i: int in marbles.size():
+		var data := marbles[i]
+		var angle := randf() * TAU
+		var dist := randf() * SPAWN_RADIUS * 0.5
+		var preferred := FIELD_CENTER + Vector2.RIGHT.rotated(angle) * dist
+		var pos := find_valid_position(preferred, Marble.RADIUS)
+		var pid := (i % 2) + 1
+		var color := Color.RED if pid == 1 else Color.BLUE
+		spawn_marble(data, pid, pos, color)
+
+	print("[Field] Spawned %d marbles from pool at random center positions" % marbles.size())
 
 func _setup_viewport_boundary() -> void:
 	const VIEWPORT_EXTENTS := Vector2(380.0, 330.0)
