@@ -253,10 +253,10 @@ func _on_default_fill_pressed() -> void:
 	]
 	
 	var default_public_paths: Array[String] = [
-		"res://resources/cards/marble_bouncy.tres",
-		"res://resources/cards/marble_bouncy.tres",
-		"res://resources/cards/marble_heavy.tres",
-		"res://resources/cards/marble_standard.tres",
+		"res://resources/cards/marble_onslaught.tres",
+		"res://resources/cards/marble_vitality.tres",
+		"res://resources/cards/marble_siphon.tres",
+		"res://resources/cards/marble_conduit.tres",
 		"res://resources/cards/marble_standard.tres"
 	]
 
