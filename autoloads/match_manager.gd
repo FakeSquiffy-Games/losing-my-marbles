@@ -11,6 +11,7 @@ var turn_order: Array[int] = []
 var player_health: Dictionary = {}
 var player_mana: Dictionary = {}
 var player_characters: Dictionary = {}
+var player_decks: Dictionary = {}
 var _pending_characters: Dictionary = {}
 
 func _ready() -> void:
@@ -106,6 +107,41 @@ func _sync_match_state(phase: int, active_player: int, turn: int, health: Dictio
 	turn_number = turn
 	player_health = health
 	player_mana = mana
+
+func init_player_deck(player_id: int, cards: Array[CardData]) -> void:
+	var deck := DeckManager.new()
+	var copied: Array[CardData] = []
+	for cd: CardData in cards:
+		copied.append(cd.duplicate())
+	deck.init(copied)
+	player_decks[player_id] = deck
+
+func draw_cards(player_id: int, count: int) -> Array[CardData]:
+	var deck: DeckManager = player_decks.get(player_id, null)
+	if deck == null:
+		return []
+	var drawn := deck.draw_cards(count)
+	for cd: CardData in drawn:
+		deck.add_to_hand(cd)
+	return drawn
+
+func discard_card(player_id: int, card_data: CardData) -> void:
+	var deck: DeckManager = player_decks.get(player_id, null)
+	if deck:
+		deck.play_card(card_data)
+
+func has_card_in_hand(player_id: int, card_data: CardData) -> bool:
+	var deck: DeckManager = player_decks.get(player_id, null)
+	return deck != null and deck.has_card_in_hand(card_data)
+
+func end_turn_return_hand_to_draw(player_id: int) -> void:
+	var deck: DeckManager = player_decks.get(player_id, null)
+	if deck:
+		deck.end_turn_return_hand_to_draw()
+
+func get_draw_pile_count(player_id: int) -> int:
+	var deck: DeckManager = player_decks.get(player_id, null)
+	return deck.get_draw_pile_count() if deck else 0
 
 func _exit_tree() -> void:
 	if SignalBus.character_selected.is_connected(_on_character_selected):

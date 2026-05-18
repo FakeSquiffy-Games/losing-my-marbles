@@ -65,6 +65,8 @@ func _ready() -> void:
 	_card_data_cache.assign(_card_library.cards)
 	for cd: CardData in _card_data_cache:
 		_card_lookup[cd.card_name] = cd
+	for player_id: int in [1, 2]:
+		MatchManager.init_player_deck(player_id, _card_data_cache)
 
 	_build_aim_controls()
 
@@ -370,23 +372,20 @@ func _update_hand_visibility() -> void:
 
 func _deal_cards() -> void:
 	_hand.clear_cards()
-	if _card_data_cache.is_empty():
-		print("[Match] No card data available for dealing")
+	var drawn: Array[CardData] = MatchManager.draw_cards(MatchManager.active_player_id, 5)
+	if drawn.is_empty():
+		print("[Match] No cards available for dealing")
 		return
 
-	var hand_size: int = min(5, _card_data_cache.size())
-	var indices: Array = range(_card_data_cache.size())
-	indices.shuffle()
 	var factory: CardDataFactory = $CardManager.card_factory as CardDataFactory
 	if factory == null:
 		push_error("[Match] CardManager.card_factory is not a CardDataFactory")
 		return
 
-	for i: int in hand_size:
-		var card_data: CardData = _card_data_cache[indices[i]]
+	for card_data: CardData in drawn:
 		factory.create_card_from_data(card_data, _hand)
 
-	print("[Match] Dealt %d cards to hand" % hand_size)
+	print("[Match] Dealt %d cards to hand (draw pile: %d)" % [drawn.size(), MatchManager.get_draw_pile_count(MatchManager.active_player_id)])
 
 func _on_card_played(card: Card) -> void:
 	if not multiplayer.is_server():
@@ -404,6 +403,7 @@ func _on_card_played(card: Card) -> void:
 		return
 
 	MatchManager.spend_mana(MatchManager.active_player_id, card_data.mana_cost)
+	MatchManager.discard_card(MatchManager.active_player_id, card_data)
 	if card_data.type == Enums.CardTypeEnum.MARBLE:
 		MatchManager.set_marble_played()
 
@@ -436,14 +436,18 @@ func _request_play_card(card_name: String) -> void:
 		return
 
 	MatchManager.spend_mana(MatchManager.active_player_id, card_data.mana_cost)
+	MatchManager.discard_card(MatchManager.active_player_id, card_data)
 	if card_data.type == Enums.CardTypeEnum.MARBLE:
 		MatchManager.set_marble_played()
 	SignalBus.card_play_validated.emit(card_name, true)
 	print("[Match] Card played (RPC): %s (mana: %d)" % [card_name, MatchManager.player_mana[MatchManager.active_player_id]])
+	print(MatchManager.player_decks[1].discard_pile.size())
 
 func _validate_card_play(card_data: CardData) -> String:
 	if MatchManager.current_phase != Enums.MatchState.PLAY:
 		return "Not in PLAY phase (current: %s)" % _phase_name(MatchManager.current_phase)
+	if not MatchManager.has_card_in_hand(MatchManager.active_player_id, card_data):
+		return "Card not in player's hand"
 	if card_data.type == Enums.CardTypeEnum.MARBLE and MatchManager.marble_played:
 		return "Already played a marble this turn"
 	if card_data.mana_cost > MatchManager.player_mana.get(MatchManager.active_player_id, 0):
