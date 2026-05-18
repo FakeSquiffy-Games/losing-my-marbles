@@ -1,7 +1,7 @@
 extends Control
 
 const PUBLIC_POOL_SIZE := 5
-const PRIVATE_DECK_SIZE := 10
+const PRIVATE_DECK_SIZE := 15
 const PASS_DEVICE_SCENE := preload("res://scenes/ui/pass_device.tscn")
 
 enum ListSource { AVAILABLE, PRIVATE_DECK, PUBLIC_POOL }
@@ -17,6 +17,7 @@ enum ListSource { AVAILABLE, PRIVATE_DECK, PUBLIC_POOL }
 @onready var _ready_button: Button = %ReadyButton
 @onready var _card_type_filter: OptionButton = %CardTypeFilter
 @onready var _title_label: Label = %TitleLabel
+@onready var _default_fill_button: Button = %DefaultFillButton
 
 var _library: CardLibrary
 var _private_deck: Array[CardData] = []
@@ -46,6 +47,9 @@ func _ready() -> void:
 	_library.load_cards()
 	_refresh_available_list()
 	_update_pool_status()
+
+	if _default_fill_button:
+		_default_fill_button.pressed.connect(_on_default_fill_pressed)
 
 
 func _load_cards() -> void:
@@ -227,3 +231,59 @@ func _on_device_passed(_next_player_id: int) -> void:
 
 func _on_back_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
+
+
+func _on_default_fill_pressed() -> void:
+	var default_private_paths: Array[String] = [
+		"res://resources/cards/aoe_gravity_well.tres",
+		"res://resources/cards/aoe_sticky_zone.tres",
+		"res://resources/cards/marble_bouncy.tres",
+		"res://resources/cards/marble_bouncy.tres",
+		"res://resources/cards/marble_bouncy.tres",
+		"res://resources/cards/marble_bouncy.tres",
+		"res://resources/cards/marble_heavy.tres",
+		"res://resources/cards/marble_standard.tres",
+		"res://resources/cards/marble_standard.tres",
+		"res://resources/cards/marble_standard.tres",
+		"res://resources/cards/powerup_accuracy.tres",
+		"res://resources/cards/powerup_boost.tres",
+		"res://resources/cards/terrain_honey.tres",
+		"res://resources/cards/terrain_ice.tres",
+		"res://resources/cards/trick_swap.tres"
+	]
+	
+	var default_public_paths: Array[String] = [
+		"res://resources/cards/marble_bouncy.tres",
+		"res://resources/cards/marble_bouncy.tres",
+		"res://resources/cards/marble_heavy.tres",
+		"res://resources/cards/marble_standard.tres",
+		"res://resources/cards/marble_standard.tres"
+	]
+
+	# Clear current UI and arrays
+	_private_deck.clear()
+	_private_list.clear()
+	_public_pool.clear()
+	_public_list.clear()
+
+	# Populate Private Deck
+	for path in default_private_paths:
+		var res := load(path) as CardData
+		if res:
+			var new_card := res.duplicate(true) as CardData
+			_private_deck.append(new_card)
+			_private_list.add_item(_card_display_name(new_card))
+		else:
+			push_warning("Auto-fill failed to load private card: ", path)
+
+	# Populate Public Pool
+	for path in default_public_paths:
+		var res := load(path) as MarbleData
+		if res:
+			var new_marble := res.duplicate(true) as MarbleData
+			_public_pool.append(new_marble)
+			_public_list.add_item(_card_display_name(new_marble))
+		else:
+			push_warning("Auto-fill failed to load public marble: ", path)
+
+	_update_pool_status()

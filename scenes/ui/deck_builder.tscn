@@ -109,14 +109,24 @@ layout_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_stretch_ratio = 12.0
 text = "Public Marble Pool (0/5)"
 horizontal_alignment = 1
+
+[node name="DefaultFillButton" type="Button" parent="VBoxContainer/BottomBar" unique_id=213953091]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Default"
 
 [node name="BackButton" type="Button" parent="VBoxContainer/BottomBar" unique_id=-27773446]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
 text = "Back"
 
 [node name="ReadyButton" type="Button" parent="VBoxContainer/BottomBar" unique_id=966846863]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
+text = "Confirm"
