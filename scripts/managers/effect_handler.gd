@@ -60,7 +60,48 @@ func dispatch_simulation_effects(marble: MarbleData, context: SimulationContext)
 
 
 func _resolve_target(effect: EffectData, context: Variant) -> Array:
+	if context is PlayContext:
+		return _resolve_play_target(effect, context as PlayContext)
+	if context is SimulationContext:
+		return _resolve_simulation_target(effect, context as SimulationContext)
+	push_error("[EffectHandler] _resolve_target: unknown context type '%s'" % context.get_class())
 	return []
+
+
+func _resolve_play_target(effect: EffectData, ctx: PlayContext) -> Array:
+	match effect.target:
+		Enums.TargetEnum.SELF:
+			return [ctx.active_player_id]
+		Enums.TargetEnum.OPPONENT:
+			return [ctx.opponent_player_id]
+		Enums.TargetEnum.CURR_MARBLE:
+			return [ctx.current_marble] if ctx.current_marble else []
+		Enums.TargetEnum.BOTH:
+			return [ctx.active_player_id, ctx.opponent_player_id]
+		Enums.TargetEnum.FIELD_MAP:
+			return [ctx.field_state_manager] if ctx.field_state_manager else []
+		Enums.TargetEnum.FIELD_MARBLES:
+			return get_tree().get_nodes_in_group("field_marbles")
+		_:
+			push_warning("[EffectHandler] Target '%s' is not valid in PLAY context" % Enums.TargetEnum.keys()[effect.target])
+			return []
+
+
+func _resolve_simulation_target(effect: EffectData, ctx: SimulationContext) -> Array:
+	match effect.target:
+		Enums.TargetEnum.KNOCKER:
+			return [ctx.knocker_player_id]
+		Enums.TargetEnum.KNOCKER_OPP:
+			return [ctx.knocker_opp_player_id]
+		Enums.TargetEnum.BOTH:
+			return [ctx.knocker_player_id, ctx.knocker_opp_player_id]
+		Enums.TargetEnum.FIELD_MAP:
+			return [ctx.field_state_manager] if ctx.field_state_manager else []
+		Enums.TargetEnum.FIELD_MARBLES:
+			return get_tree().get_nodes_in_group("field_marbles")
+		_:
+			push_warning("[EffectHandler] Target '%s' is not valid in SIMULATION context" % Enums.TargetEnum.keys()[effect.target])
+			return []
 
 
 func _on_marble_knocked_out(marble_data: MarbleData, knocked_player_id: int) -> void:
