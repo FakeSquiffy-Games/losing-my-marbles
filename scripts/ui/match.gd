@@ -24,6 +24,7 @@ const SHOT_IMPULSE_SCALE: float = 80.0
 @onready var _play_area: PlayArea = %PlayArea
 @onready var _aim_controls_container: VBoxContainer = %AimControlsContainer
 @onready var _table_frame: Control = %TableFrame
+@onready var _phase_buttons_container: VBoxContainer = $"ControlsPanel/ControlsVBox/PhaseButtons"
 
 var _fsm: StateChart
 var _aim_controls: BoxContainer
@@ -42,6 +43,11 @@ var _fine_tune_value: float = 0.0
 var _fine_tune_direction: int = 0
 var _last_emitted_total: float = -INF
 var _aim_pulse_tween: Tween
+var _slide_tween: Tween
+var _right_panel_tween: Tween
+var _phase_buttons_rest_x: float
+var _aim_controls_rest_x: float
+var _previous_button_phase: int = -1
 var _card_library: CardLibrary
 var _card_data_cache: Array[CardData] = []
 var _card_lookup: Dictionary = {}
@@ -61,6 +67,8 @@ func _ready() -> void:
 	_play_area.card_played.connect(_on_card_played)
 
 	get_tree().root.size_changed.connect(_on_viewport_size_changed)
+	_phase_buttons_rest_x = _phase_buttons_container.position.x
+	_aim_controls_rest_x = _aim_controls_container.position.x
 
 	_card_library = CardLibrary.new()
 	_card_library.load_cards()
@@ -239,7 +247,8 @@ func _on_ready_pressed() -> void:
 	_fsm.send_event("ready")
 
 func _on_aim_pressed() -> void:
-	_slide_table_frame_out(func(): _fsm.send_event("aim"))
+	_fsm.send_event("aim")
+	_slide_table_frame_out()
 
 func _on_end_turn_pressed() -> void:
 	_fsm.send_event("end_turn")
@@ -319,12 +328,7 @@ func _show_phase_buttons() -> void:
 
 	print("[Match] _show_phase_buttons: phase=%s is_active=%s is_server_ok=%s" % [_phase_name(phase), is_active, is_server_ok])
 
-	_ready_button.visible = phase == Enums.MatchState.DRAW and is_server_ok
-	_aim_button.visible = phase == Enums.MatchState.PLAY and is_server_ok
-	_end_turn_button.visible = phase == Enums.MatchState.PLAY and is_server_ok
-	_execute_button.visible = phase == Enums.MatchState.AIM and is_server_ok
-	_aim_back_button.visible = phase == Enums.MatchState.AIM and is_server_ok
-	_aim_controls_container.visible = phase == Enums.MatchState.AIM and is_server_ok
+	_animate_right_panel(phase, is_server_ok)
 
 	_play_area.mouse_filter = Control.MOUSE_FILTER_PASS if phase == Enums.MatchState.PLAY else Control.MOUSE_FILTER_IGNORE
 
@@ -349,9 +353,68 @@ func _show_phase_buttons() -> void:
 			pass_device.setup(MatchManager.active_player_id)
 			add_child(pass_device)
 		else:
-			# Online: next turn automatically
 			MatchManager.set_active_player(MatchManager.get_opponent_id())
 			_fsm.send_event("next_turn")
+
+func _animate_right_panel(phase: int, is_server_ok: bool) -> void:
+	if _right_panel_tween and _right_panel_tween.is_valid():
+		_right_panel_tween.kill()
+
+	var is_initial := _previous_button_phase == -1
+	var was_aim := _previous_button_phase == Enums.MatchState.AIM
+	var is_aim := phase == Enums.MatchState.AIM
+	_previous_button_phase = phase
+
+	if is_initial:
+		_sync_button_visibility(phase, is_server_ok)
+		_sync_aim_controls_snap(is_aim)
+		return
+
+	var pb := _phase_buttons_container
+	var ac := _aim_controls_container
+	var off_x := _phase_buttons_rest_x + 200.0
+	var ac_off_x := _aim_controls_rest_x + 200.0
+
+	_right_panel_tween = create_tween()
+
+	# Phase 1: Slide out — 0.15s (aim controls join if leaving AIM)
+	_right_panel_tween.set_trans(Tween.TRANS_QUAD)
+	_right_panel_tween.set_ease(Tween.EASE_IN)
+	_right_panel_tween.tween_property(pb, "position:x", off_x, 0.15)
+	if was_aim:
+		_right_panel_tween.parallel().tween_property(ac, "position:x", ac_off_x, 0.15)
+
+	# Phase 2: Swap visibility at midpoint
+	_right_panel_tween.tween_callback(_sync_button_visibility.bind(phase, is_server_ok))
+	_right_panel_tween.tween_callback(func(): _sync_aim_controls_prep(is_aim))
+
+	# Phase 3: Slide in — 0.25s (aim controls join if entering AIM)
+	_right_panel_tween.set_trans(Tween.TRANS_QUAD)
+	_right_panel_tween.set_ease(Tween.EASE_OUT)
+	_right_panel_tween.tween_property(pb, "position:x", _phase_buttons_rest_x, 0.25)
+	if is_aim:
+		_right_panel_tween.parallel().tween_property(ac, "position:x", _aim_controls_rest_x, 0.25)
+
+func _sync_button_visibility(phase: int, is_server_ok: bool) -> void:
+	_ready_button.visible = phase == Enums.MatchState.DRAW and is_server_ok
+	_aim_button.visible = phase == Enums.MatchState.PLAY and is_server_ok
+	_end_turn_button.visible = phase == Enums.MatchState.PLAY and is_server_ok
+	_execute_button.visible = phase == Enums.MatchState.AIM and is_server_ok
+	_aim_back_button.visible = phase == Enums.MatchState.AIM and is_server_ok
+
+func _sync_aim_controls_snap(is_aim: bool) -> void:
+	var ac := _aim_controls_container
+	ac.visible = is_aim
+	ac.position = Vector2(_aim_controls_rest_x, ac.position.y)
+
+func _sync_aim_controls_prep(is_aim: bool) -> void:
+	var ac := _aim_controls_container
+	if is_aim:
+		ac.position = Vector2(_aim_controls_rest_x + 200.0, ac.position.y)
+		ac.visible = true
+	else:
+		ac.visible = false
+		ac.position = Vector2(_aim_controls_rest_x, ac.position.y)
 
 func _reset_aim_controls() -> void:
 	_fine_tune_value = 0.0
@@ -498,7 +561,7 @@ func _on_viewport_size_changed() -> void:
 		_table_frame.offset_top = vp_height
 		_table_frame.offset_bottom = vp_height
 
-func _slide_table_frame_out(then: Callable) -> void:
+func _slide_table_frame_out() -> void:
 	var vp_height := get_viewport_rect().size.y
 	var tween := create_tween()
 	tween.set_parallel(true)
@@ -506,7 +569,6 @@ func _slide_table_frame_out(then: Callable) -> void:
 	tween.set_ease(Tween.EASE_IN_OUT)
 	tween.tween_property(_table_frame, "offset_top", vp_height, 0.4)
 	tween.tween_property(_table_frame, "offset_bottom", vp_height, 0.4)
-	tween.finished.connect(then, CONNECT_ONE_SHOT)
 
 func _slide_table_frame_in() -> void:
 	var tween := create_tween()
