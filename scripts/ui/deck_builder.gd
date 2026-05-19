@@ -234,56 +234,48 @@ func _on_back_pressed() -> void:
 
 
 func _on_default_fill_pressed() -> void:
-	var default_private_paths: Array[String] = [
-		"res://resources/cards/aoe_gravity_well.tres",
-		"res://resources/cards/aoe_sticky_zone.tres",
-		"res://resources/cards/marble_bouncy.tres",
-		"res://resources/cards/marble_bouncy.tres",
-		"res://resources/cards/marble_bouncy.tres",
-		"res://resources/cards/marble_bouncy.tres",
-		"res://resources/cards/marble_heavy.tres",
-		"res://resources/cards/marble_standard.tres",
-		"res://resources/cards/marble_standard.tres",
-		"res://resources/cards/marble_standard.tres",
-		"res://resources/cards/powerup_accuracy.tres",
-		"res://resources/cards/powerup_boost.tres",
-		"res://resources/cards/terrain_honey.tres",
-		"res://resources/cards/terrain_ice.tres",
-		"res://resources/cards/trick_swap.tres"
-	]
-	
-	var default_public_paths: Array[String] = [
-		"res://resources/cards/marble_onslaught.tres",
-		"res://resources/cards/marble_vitality.tres",
-		"res://resources/cards/marble_siphon.tres",
-		"res://resources/cards/marble_conduit.tres",
-		"res://resources/cards/marble_standard.tres"
-	]
-
 	# Clear current UI and arrays
 	_private_deck.clear()
 	_private_list.clear()
 	_public_pool.clear()
 	_public_list.clear()
 
-	# Populate Private Deck
-	for path in default_private_paths:
-		var res := load(path) as CardData
-		if res:
-			var new_card := res.duplicate(true) as CardData
-			_private_deck.append(new_card)
-			_private_list.add_item(_card_display_name(new_card))
-		else:
-			push_warning("Auto-fill failed to load private card: ", path)
+	if _library.cards.is_empty():
+		push_warning("Auto-fill: No cards in library.")
+		return
 
-	# Populate Public Pool
-	for path in default_public_paths:
-		var res := load(path) as MarbleData
-		if res:
-			var new_marble := res.duplicate(true) as MarbleData
-			_public_pool.append(new_marble)
-			_public_list.add_item(_card_display_name(new_marble))
+	var all_cards := _library.cards
+	var marbles: Array[CardData] = []
+	var non_marbles: Array[CardData] = []
+	for c in all_cards:
+		if c is MarbleData:
+			marbles.append(c)
 		else:
-			push_warning("Auto-fill failed to load public marble: ", path)
+			non_marbles.append(c)
+
+	if marbles.is_empty():
+		push_warning("Auto-fill: No marble cards in library.")
+		return
+
+	# Populate Private Deck (15 cards): at least 1 marble, rest random from all
+	_private_deck.append(marbles.pick_random().duplicate(true) as CardData)
+	for _i in range(PRIVATE_DECK_SIZE - 1):
+		_private_deck.append(all_cards.pick_random().duplicate(true) as CardData)
+	_private_deck.shuffle()
+	for card in _private_deck:
+		_private_list.add_item(_card_display_name(card))
+
+	# Populate Public Pool (5 marbles): random unique-ish from marble pool
+	var used_names: Array[String] = []
+	for _i in range(PUBLIC_POOL_SIZE):
+		var candidate := marbles.pick_random().duplicate(true) as MarbleData
+		# Try to avoid too many duplicates in the small pool
+		var attempts := 0
+		while candidate.card_name in used_names and attempts < 10 and marbles.size() > PUBLIC_POOL_SIZE:
+			candidate = marbles.pick_random().duplicate(true) as MarbleData
+			attempts += 1
+		used_names.append(candidate.card_name)
+		_public_pool.append(candidate)
+		_public_list.add_item(_card_display_name(candidate))
 
 	_update_pool_status()

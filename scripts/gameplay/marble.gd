@@ -7,6 +7,8 @@ const MARBLE_COLOR := Color(0.82, 0.82, 0.85, 1.0)
 var marble_data: MarbleData = null
 var owner_player_id: int = 0
 
+const SPRITE_TARGET_DIAMETER: float = RADIUS * 2.0
+
 var _sprite: Sprite2D = null
 
 
@@ -44,14 +46,21 @@ func setup(data: MarbleData, player_id: int) -> void:
 	add_to_group("field_marbles")
 
 	var tex: Texture2D = null
+	var tex_is_asset: bool = false
 	if data and not data.card_name.is_empty():
 		var path := "res://assets/sprites/marbles/%s.png" % data.card_name.to_snake_case()
 		if ResourceLoader.exists(path):
 			var loaded := ResourceLoader.load(path)
 			if loaded is Texture2D:
 				tex = loaded
+				tex_is_asset = true
 	if not tex:
 		tex = make_circle_texture(MARBLE_COLOR)
 	if not _sprite:
 		_sprite = get_node("%Sprite") as Sprite2D
 	_sprite.texture = tex
+	_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	if tex_is_asset:
+		_sprite.scale = Vector2(SPRITE_TARGET_DIAMETER / tex.get_width(), SPRITE_TARGET_DIAMETER / tex.get_height())
+	else:
+		_sprite.scale = Vector2.ONE

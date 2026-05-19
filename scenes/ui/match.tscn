@@ -40,6 +40,7 @@ script = ExtResource("1_script")
 [node name="CardManager" type="Control" parent="." unique_id=412274605]
 anchors_preset = 0
 script = ExtResource("3_card_manager")
+card_size = Vector2(74, 98)
 card_factory_scene = ExtResource("4_factory_scene")
 
 [node name="Field" parent="." unique_id=928684774 instance=ExtResource("2_field")]
@@ -122,6 +123,7 @@ offset_top = -200.0
 offset_right = 300.0
 grow_horizontal = 0
 grow_vertical = 0
+scale = Vector2(2, 2)
 mouse_filter = 1
 script = ExtResource("5_hand")
 max_hand_spread = 600
