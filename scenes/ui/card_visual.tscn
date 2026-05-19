@@ -1,16 +1,16 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene format=3 uid="uid://dd4uawbgxbwvo"]
 
 [ext_resource type="Script" uid="uid://dtpomjc0u41g" path="res://addons/card-framework/card.gd" id="1_card_script"]
-[ext_resource type="Script" path="res://scripts/ui/card_visual_controller.gd" id="2_controller"]
+[ext_resource type="Script" uid="uid://c1ekxhoffc3hs" path="res://scripts/ui/card_visual_controller.gd" id="2_controller"]
 
-[node name="Card" type="Control"]
+[node name="Card" type="Control" unique_id=629771622]
 layout_mode = 3
 anchors_preset = 0
 script = ExtResource("1_card_script")
 front_face_texture = NodePath("FrontFace/FrameRect")
 back_face_texture = NodePath("BackFace/BackRect")
 
-[node name="FrontFace" type="Control" parent="."]
+[node name="FrontFace" type="Control" parent="." unique_id=1353765991]
 layout_mode = 1
 anchors_preset = 0
 offset_right = 74.0
@@ -18,14 +18,14 @@ offset_bottom = 98.0
 mouse_filter = 1
 script = ExtResource("2_controller")
 
-[node name="FrameRect" type="TextureRect" parent="FrontFace"]
+[node name="FrameRect" type="TextureRect" parent="FrontFace" unique_id=856544727]
 unique_name_in_owner = true
 layout_mode = 1
 offset_right = 74.0
 offset_bottom = 98.0
 expand_mode = 1
 
-[node name="SpriteRect" type="TextureRect" parent="FrontFace/FrameRect"]
+[node name="SpriteRect" type="TextureRect" parent="FrontFace/FrameRect" unique_id=1108470864]
 unique_name_in_owner = true
 layout_mode = 1
 offset_left = 11.0
@@ -34,7 +34,7 @@ offset_right = 63.0
 offset_bottom = 48.0
 expand_mode = 1
 
-[node name="ManaCostLabel" type="Label" parent="FrontFace/FrameRect"]
+[node name="ManaCostLabel" type="Label" parent="FrontFace/FrameRect" unique_id=1917300796]
 unique_name_in_owner = true
 layout_mode = 1
 offset_left = 3.0
@@ -42,40 +42,36 @@ offset_top = 2.0
 offset_right = 22.0
 offset_bottom = 14.0
 text = "0"
-horizontal_alignment = 0
 vertical_alignment = 1
 
-[node name="CardNameLabel" type="Label" parent="FrontFace/FrameRect"]
+[node name="CardNameLabel" type="Label" parent="FrontFace/FrameRect" unique_id=2037098947]
 unique_name_in_owner = true
 layout_mode = 1
 offset_left = 2.0
 offset_top = 51.0
 offset_right = 72.0
 offset_bottom = 63.0
-text = ""
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="CardDescLabel" type="Label" parent="FrontFace/FrameRect"]
+[node name="CardDescLabel" type="Label" parent="FrontFace/FrameRect" unique_id=2047883016]
 unique_name_in_owner = true
 layout_mode = 1
 offset_left = 3.0
 offset_top = 64.0
 offset_right = 71.0
 offset_bottom = 95.0
-text = ""
 horizontal_alignment = 1
-vertical_alignment = 0
 autowrap_mode = 3
 
-[node name="BackFace" type="Control" parent="."]
+[node name="BackFace" type="Control" parent="." unique_id=1175122274]
 layout_mode = 1
 anchors_preset = 0
 offset_right = 74.0
 offset_bottom = 98.0
 mouse_filter = 1
 
-[node name="BackRect" type="TextureRect" parent="BackFace"]
+[node name="BackRect" type="TextureRect" parent="BackFace" unique_id=474885501]
 layout_mode = 1
 offset_right = 74.0
 offset_bottom = 98.0
