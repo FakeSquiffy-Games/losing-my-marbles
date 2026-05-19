@@ -6,3 +6,4 @@ extends Resource
 @export var mana: int = 3
 @export var power: float = 1.0
 @export var exclusive_cards: Array[CardData] = []
+@export var flick_pose: Texture2D

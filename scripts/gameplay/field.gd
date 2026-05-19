@@ -424,7 +424,7 @@ func _spawn_field_marbles_from_pool(count: int) -> void:
 	print("[Field] Spawned %d marbles from pool at random center positions" % marbles.size())
 
 func _setup_viewport_boundary() -> void:
-	const VIEWPORT_EXTENTS := Vector2(380.0, 330.0)
+	const VIEWPORT_EXTENTS := Vector2(640.0, 640.0)
 	var wall_material := PhysicsMaterial.new()
 	wall_material.bounce = 0.0
 	wall_material.friction = 1.0

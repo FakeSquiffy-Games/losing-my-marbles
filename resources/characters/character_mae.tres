@@ -1,6 +1,7 @@
 [gd_resource type="Resource" script_class="CharacterData" format=3 uid="uid://2dra4uocvn4l"]
 
 [ext_resource type="Script" uid="uid://d0o5jks4fljeg" path="res://scripts/resources/card_data.gd" id="1_mroyo"]
+[ext_resource type="Texture2D" uid="uid://bb0hi43suhpug" path="res://assets/poses/mm_flick.png" id="2_2hlss"]
 [ext_resource type="Script" uid="uid://bm6t7q8t400ep" path="res://scripts/resources/character_data.gd" id="2_amff8"]
 
 [resource]
@@ -9,3 +10,4 @@ character_name = "Mae"
 health = 150
 mana = 5
 power = 1.5
+flick_pose = ExtResource("2_2hlss")

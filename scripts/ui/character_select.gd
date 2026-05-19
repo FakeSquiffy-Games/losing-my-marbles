@@ -61,6 +61,13 @@ func _create_character_card(data: CharacterData) -> Control:
 	select_button.text = "Select"
 	select_button.pressed.connect(_on_character_selected.bind(_characters.find(data)))
 	vbox.add_child(select_button)
+	
+	var character_pose := TextureRect.new()
+	character_pose.texture = data.flick_pose
+	character_pose.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	character_pose.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	character_pose.custom_minimum_size = Vector2(0, 360)
+	vbox.add_child(character_pose)
 
 	return card
 
@@ -77,7 +84,12 @@ func _on_confirm_pressed() -> void:
 		return
 	var chosen := _characters[_selected_index]
 	_confirm_button.disabled = true
-
+	if _characters[_selected_index].character_name == "JC":
+		AudioManager.play_ui_sound("jc_selected")
+	if _characters[_selected_index].character_name == "Mae":
+		AudioManager.play_ui_sound("mae_selected")
+	if _characters[_selected_index].character_name == "Ryl":
+		AudioManager.play_ui_sound("ryl_selected")
 	if NetworkManager.is_host and NetworkManager.session_key != "OFFLINE":
 		_request_character_select.rpc_id(1, _selected_index, _current_selecting_player)
 	SignalBus.character_selected.emit(_current_selecting_player, chosen)

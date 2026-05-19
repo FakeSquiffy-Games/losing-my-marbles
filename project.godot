@@ -27,6 +27,11 @@ EffectHandler="*res://scripts/managers/effect_handler.gd"
 PhantomCameraManager="*uid://duq6jhf6unyis"
 AudioManager="*uid://bvxr85jra8pu"
 
+[display]
+
+window/stretch/mode="viewport"
+window/stretch/aspect="keep_width"
+
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/gdscript-linter/plugin.cfg", "res://addons/godot_state_charts/plugin.cfg", "res://addons/gut/plugin.cfg", "res://addons/phantom_camera/plugin.cfg")

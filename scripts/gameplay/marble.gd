@@ -64,3 +64,14 @@ func setup(data: MarbleData, player_id: int) -> void:
 		_sprite.scale = Vector2(SPRITE_TARGET_DIAMETER / tex.get_width(), SPRITE_TARGET_DIAMETER / tex.get_height())
 	else:
 		_sprite.scale = Vector2.ONE
+		
+	# --- ADDED: Collision Sound Configuration ---
+	contact_monitor = true
+	max_contacts_reported = 4
+	if not body_entered.is_connected(_on_body_entered):
+		body_entered.connect(_on_body_entered)
+
+
+# --- ADDED: Collision Handler Function ---
+func _on_body_entered(_body: Node) -> void:
+	AudioManager.play_ui_sound("collide")

@@ -5,7 +5,12 @@ extends Node
 ## (Update these paths when your partner imports the actual assets!)
 var sounds: Dictionary = {
 	## Format: "name" : preload("res://assets/audio/file.wav"),
-	"background" : preload("res://assets/audio/JumpPack - FreeMusicLoops - v1.0/Toilet Gremlins.ogg")
+	"background" : preload("res://assets/audio/JumpPack - FreeMusicLoops - v1.0/Toilet Gremlins.ogg"),
+	"background_match" : preload("res://assets/audio/JumpPack - FreeMusicLoops - v1.0/Another Day At the Office.ogg"),
+	"collide": preload("res://assets/audio/marble.wav"),
+	"jc_selected": preload("res://assets/audio/voice_lines/jc_selected.wav"),
+	"mae_selected": preload("res://assets/audio/voice_lines/mae_selected.wav"),
+	"ryl_selected": preload("res://assets/audio/voice_lines/ryl_selected.wav")
 }
 
 ## Dictionary of active sounds for ambience and intro.

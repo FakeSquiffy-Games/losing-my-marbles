@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://d0o5jks4fljeg" path="res://scripts/resources/card_data.gd" id="1_1bi78"]
 [ext_resource type="Script" uid="uid://bm6t7q8t400ep" path="res://scripts/resources/character_data.gd" id="2_2btk7"]
+[ext_resource type="Texture2D" uid="uid://qjwecugudnjv" path="res://assets/poses/clyde_flick.png" id="2_xnave"]
 
 [resource]
 script = ExtResource("2_2btk7")
@@ -9,3 +10,4 @@ character_name = "JC"
 health = 120
 mana = 5
 power = 2.0
+flick_pose = ExtResource("2_xnave")

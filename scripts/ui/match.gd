@@ -86,14 +86,16 @@ func _ready() -> void:
 		MatchManager.player_public_pools.get(1, []),
 		MatchManager.player_public_pools.get(2, [])
 	)
-
+	AudioManager.stop_sound("background")
+	AudioManager.play_ui_sound("background_match", -10.0)
+	
 	_build_aim_controls()
 	_build_draw_hud()
 
 	if not multiplayer.is_server():
 		_disable_buttons()
 		return
-
+	
 	MatchManager.set_active_player(1)
 	print("[Match] set_active_player(1) done, phase=", MatchManager.current_phase)
 

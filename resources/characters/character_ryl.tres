@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://d0o5jks4fljeg" path="res://scripts/resources/card_data.gd" id="1_6hqq8"]
 [ext_resource type="Script" uid="uid://bm6t7q8t400ep" path="res://scripts/resources/character_data.gd" id="2_6kwvx"]
+[ext_resource type="Texture2D" uid="uid://bc35imtmbuohb" path="res://assets/poses/joseph_flick.png" id="2_x04sk"]
 
 [resource]
 script = ExtResource("2_6kwvx")
@@ -9,3 +10,4 @@ character_name = "Ryl"
 health = 150
 mana = 4
 power = 2.0
+flick_pose = ExtResource("2_x04sk")
