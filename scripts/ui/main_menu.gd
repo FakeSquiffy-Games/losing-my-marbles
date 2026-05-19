@@ -8,7 +8,7 @@ func _ready() -> void:
 	_online_button.pressed.connect(_on_online_pressed)
 	_offline_button.pressed.connect(_on_offline_pressed)
 	_quit_button.pressed.connect(_on_quit_pressed)
-	$BackgroundMusic.play()
+	AudioManager.play_ui_sound("background", -10.0)
 
 func _on_online_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/ui/matchmaking_lobby.tscn")

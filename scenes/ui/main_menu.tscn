@@ -14,7 +14,6 @@
 [ext_resource type="Texture2D" uid="uid://dtnyf0hkrw7cm" path="res://assets/background/10.png" id="12_4ovp2"]
 [ext_resource type="Texture2D" uid="uid://bfa3jx2y8rkds" path="res://assets/background/11.png" id="13_1mexh"]
 [ext_resource type="Texture2D" uid="uid://deylahyqbwq3k" path="res://assets/background/12.png" id="14_6ud2m"]
-[ext_resource type="AudioStream" uid="uid://btaecxhj8ijk5" path="res://assets/audio/JumpPack - FreeMusicLoops - v1.0/Toilet Gremlins.ogg" id="15_ayp64"]
 [ext_resource type="FontFile" uid="uid://dllly6avq8lia" path="res://assets/fonts/pirkkala.ttf" id="15_qqxfm"]
 [ext_resource type="Texture2D" uid="uid://bt54vsisph5c7" path="res://assets/background/18.png" id="15_y2j7i"]
 
@@ -103,9 +102,6 @@ position = Vector2(578, 176)
 scale = Vector2(0.55500007, 0.5666667)
 texture = ExtResource("15_y2j7i")
 
-[node name="BackgroundMusic" type="AudioStreamPlayer" parent="." unique_id=993554210]
-stream = ExtResource("15_ayp64")
-
 [node name="VBoxContainer" type="Control" parent="." unique_id=733844391]
 layout_mode = 1
 anchors_preset = 15
@@ -169,3 +165,5 @@ theme_override_fonts/font = ExtResource("15_qqxfm")
 theme_override_font_sizes/font_size = 64
 text = "Quit"
 flat = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=914771855]

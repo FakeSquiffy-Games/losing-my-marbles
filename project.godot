@@ -25,6 +25,7 @@ FieldStateManager="*res://autoloads/field_state_manager.gd"
 MarblePoolManager="*res://autoloads/marble_pool_manager.gd"
 EffectHandler="*res://scripts/managers/effect_handler.gd"
 PhantomCameraManager="*uid://duq6jhf6unyis"
+AudioManager="*uid://bvxr85jra8pu"
 
 [editor_plugins]
 
