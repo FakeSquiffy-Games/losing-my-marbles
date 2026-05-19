@@ -6,7 +6,16 @@
 
 [sub_resource type="LabelSettings" id="LabelSettings_fucvx"]
 font = ExtResource("3_gw2cc")
-font_size = 6
+font_size = 24
+font_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_evqd0"]
+font = ExtResource("3_gw2cc")
+font_size = 20
+font_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_x7qwh"]
+font = ExtResource("3_gw2cc")
 font_color = Color(0, 0, 0, 1)
 
 [node name="Card" type="Control" unique_id=629771622]
@@ -29,6 +38,7 @@ unique_name_in_owner = true
 layout_mode = 1
 offset_right = 74.0
 offset_bottom = 98.0
+scale = Vector2(2, 2)
 expand_mode = 1
 
 [node name="SpriteRect" type="TextureRect" parent="FrontFace/FrameRect" unique_id=1108470864]
@@ -40,43 +50,45 @@ offset_right = 63.0
 offset_bottom = 48.0
 expand_mode = 1
 
-[node name="ManaCostLabel" type="Label" parent="FrontFace/FrameRect" unique_id=1917300796]
+[node name="ManaCostLabel" type="Label" parent="FrontFace" unique_id=1917300796]
 unique_name_in_owner = true
 texture_filter = 5
 layout_mode = 1
-offset_left = 3.0
-offset_top = 2.0
-offset_right = 22.0
-offset_bottom = 14.0
+offset_left = 12.0
+offset_top = 11.0
+offset_right = 31.0
+offset_bottom = 35.0
 text = "0"
-label_settings = SubResource("LabelSettings_fucvx")
-vertical_alignment = 1
-
-[node name="CardNameLabel" type="Label" parent="FrontFace/FrameRect" unique_id=2037098947]
-unique_name_in_owner = true
-texture_filter = 5
-layout_mode = 1
-offset_left = 2.0
-offset_top = 51.0
-offset_right = 72.0
-offset_bottom = 63.0
 label_settings = SubResource("LabelSettings_fucvx")
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="CardDescLabel" type="Label" parent="FrontFace/FrameRect" unique_id=2047883016]
+[node name="CardNameLabel" type="Label" parent="FrontFace" unique_id=2037098947]
 unique_name_in_owner = true
 texture_filter = 5
 layout_mode = 1
-offset_left = 3.0
-offset_top = 64.0
-offset_right = 71.0
-offset_bottom = 95.0
-label_settings = SubResource("LabelSettings_fucvx")
+offset_left = 25.0
+offset_top = 95.0
+offset_right = 123.0
+offset_bottom = 113.0
+label_settings = SubResource("LabelSettings_evqd0")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CardDescLabel" type="Label" parent="FrontFace" unique_id=2047883016]
+unique_name_in_owner = true
+texture_filter = 5
+layout_mode = 1
+offset_left = 25.0
+offset_top = 115.0
+offset_right = 123.0
+offset_bottom = 173.0
+label_settings = SubResource("LabelSettings_x7qwh")
 horizontal_alignment = 1
 autowrap_mode = 3
 
 [node name="BackFace" type="Control" parent="." unique_id=1175122274]
+visible = false
 layout_mode = 1
 anchors_preset = 0
 offset_right = 74.0
@@ -84,6 +96,7 @@ offset_bottom = 98.0
 mouse_filter = 1
 
 [node name="BackRect" type="TextureRect" parent="BackFace" unique_id=474885501]
+visible = false
 layout_mode = 1
 offset_right = 74.0
 offset_bottom = 98.0
