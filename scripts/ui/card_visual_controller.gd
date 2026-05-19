@@ -22,6 +22,8 @@ func apply_card_data(card_data: CardData) -> void:
 	_ensure_nodes()
 	frame_rect.texture = _get_frame(card_data.type)
 	sprite_rect.texture = _get_card_sprite(card_data)
+	sprite_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	sprite_rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	mana_label.text = str(card_data.mana_cost)
 	name_label.text = card_data.card_name
 	desc_label.text = card_data.description if not card_data.description.is_empty() else ""
