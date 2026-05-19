@@ -15,7 +15,7 @@ const VELOCITY_THRESHOLD: float = 0.5
 const ANGULAR_VELOCITY_THRESHOLD: float = 0.1
 const SLEEP_CHECK_DELAY: float = 0.3
 
-@onready var _background: ColorRect = %Background
+@onready var _background: Sprite2D = %Background
 @onready var _gravity_zone: Area2D = %GravityZone
 @onready var _board_cam: PhantomCamera2D = %BoardOverviewCamera
 
@@ -44,15 +44,13 @@ func _ready() -> void:
 	_setup_shooter_camera()
 	_setup_trajectory_preview()
 	$Camera2D.ignore_rotation = false
-	_background.visible = false
 	queue_redraw()
 	SignalBus.phase_changed.connect(_on_phase_changed_for_camera)
 	SignalBus.phase_changed.connect(_on_phase_changed_for_shooter_marble)
 	SignalBus.phase_changed.connect(_on_phase_changed_for_simulation)
 
 func _draw() -> void:
-	draw_circle(FIELD_CENTER, FIELD_RADIUS, Color(0.15, 0.2, 0.15, 1.0))
-	draw_arc(FIELD_CENTER, FIELD_RADIUS, 0, TAU, 72, Color(0.25, 0.35, 0.25, 1.0), WALL_THICKNESS)
+	pass
 
 func _update_gravity_shape() -> void:
 	var shape_node := _gravity_zone.get_node_or_null("CollisionShape2D")

@@ -4,6 +4,7 @@
 [ext_resource type="Script" uid="uid://bd046eokvcnu2" path="res://addons/phantom_camera/scripts/phantom_camera_host/phantom_camera_host.gd" id="2_7156t"]
 [ext_resource type="Script" uid="uid://bhexx6mj1xv3q" path="res://addons/phantom_camera/scripts/phantom_camera/phantom_camera_2d.gd" id="3_pn4dk"]
 [ext_resource type="Script" uid="uid://8umksf8e80fw" path="res://addons/phantom_camera/scripts/resources/tween_resource.gd" id="4_wnvii"]
+[ext_resource type="Texture2D" uid="uid://bou3wdpqycesp" path="res://assets/background/arena.png" id="5_5vl23"]
 
 [sub_resource type="Resource" id="Resource_tcubs"]
 script = ExtResource("4_wnvii")
@@ -42,12 +43,6 @@ priority = 10
 tween_resource = SubResource("Resource_tcubs")
 metadata/_custom_type_script = "uid://bhexx6mj1xv3q"
 
-[node name="Background" type="ColorRect" parent="SubViewport/Field" unique_id=660430404]
-unique_name_in_owner = true
-offset_right = 900.0
-offset_bottom = 500.0
-color = Color(0.15, 0.2, 0.15, 1)
-
 [node name="GravityZone" type="Area2D" parent="SubViewport/Field" unique_id=1704069582]
 unique_name_in_owner = true
 gravity_space_override = 3
@@ -55,3 +50,17 @@ gravity_space_override = 3
 [node name="CollisionShape2D" type="CollisionShape2D" parent="SubViewport/Field/GravityZone" unique_id=782654351]
 position = Vector2(450, 250)
 shape = SubResource("1_rect")
+
+[node name="ColorRect" type="ColorRect" parent="SubViewport" unique_id=1785864657]
+z_index = -10
+offset_left = -513.0
+offset_top = -783.0
+offset_right = 1755.0
+offset_bottom = 1482.0
+color = Color(0.49803922, 0.627451, 0.13333334, 1)
+
+[node name="Background" type="Sprite2D" parent="SubViewport" unique_id=522623791]
+unique_name_in_owner = true
+z_index = -5
+position = Vector2(450, 260)
+texture = ExtResource("5_5vl23")
