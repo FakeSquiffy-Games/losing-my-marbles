@@ -25,4 +25,5 @@ card_name = "Marble Vitality"
 type = 0
 mana_cost = 1
 effects = Array[ExtResource("3_efx")]([SubResource("efx_1")])
+description = "When knocked out, heals the shooter for 10 health."
 physics = SubResource("phys_1")

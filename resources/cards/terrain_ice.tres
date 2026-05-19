@@ -7,4 +7,5 @@ script = ExtResource("1")
 card_name = "Ice Terrain"
 type = 3
 mana_cost = 3
+description = "Covers the field in ice. Marbles slide with greatly reduced friction."
 effects = []

@@ -7,4 +7,5 @@ script = ExtResource("1")
 card_name = "Accuracy"
 type = 1
 mana_cost = 1
+description = "Improves aim precision for the next shot."
 effects = []

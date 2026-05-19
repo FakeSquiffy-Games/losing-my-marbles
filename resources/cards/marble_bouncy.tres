@@ -17,4 +17,5 @@ card_name = "Marble Bouncy"
 type = 0
 mana_cost = 0
 effects = []
+description = "Lightweight marble with extreme elasticity. Ricochets wildly on impact."
 physics = SubResource("phys_1")

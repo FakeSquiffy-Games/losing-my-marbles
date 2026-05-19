@@ -25,4 +25,5 @@ card_name = "Marble Siphon"
 type = 0
 mana_cost = 1
 effects = Array[ExtResource("3_efx")]([SubResource("efx_1")])
+description = "When knocked out, drains 2 mana from the shooter's opponent."
 physics = SubResource("phys_1")

@@ -17,4 +17,5 @@ card_name = "Marble Heavy"
 type = 0
 mana_cost = 0
 effects = []
+description = "Dense marble. Hard to knock out, but slow on the field."
 physics = SubResource("phys_1")

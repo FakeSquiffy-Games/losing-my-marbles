@@ -7,4 +7,5 @@ script = ExtResource("1")
 card_name = "Sticky Zone"
 type = 4
 mana_cost = 2
+description = "Creates a sticky zone. Marbles entering it lose speed."
 effects = []

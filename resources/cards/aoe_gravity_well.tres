@@ -7,4 +7,5 @@ script = ExtResource("1")
 card_name = "Gravity Well"
 type = 4
 mana_cost = 2
+description = "Creates a gravity well that pulls nearby marbles toward its center."
 effects = []

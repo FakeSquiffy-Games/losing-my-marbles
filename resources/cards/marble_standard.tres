@@ -17,4 +17,5 @@ card_name = "Marble Standard"
 type = 0
 mana_cost = 0
 effects = []
+description = "Standard issue marble. Balanced stats for all situations."
 physics = SubResource("phys_1")

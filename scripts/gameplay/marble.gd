@@ -7,6 +7,24 @@ var marble_data: MarbleData = null
 var owner_player_id: int = 0
 var _color: Color = Color.WHITE
 
+@onready var _sprite: Sprite2D = %Sprite
+
+
+static func make_circle_texture(color: Color) -> ImageTexture:
+	var size := int(RADIUS * 2 + 4)
+	var image := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	image.fill(Color.TRANSPARENT)
+	var center := Vector2(size / 2.0, size / 2.0)
+	for x in size:
+		for y in size:
+			var dist := Vector2(x, y).distance_to(center)
+			if dist <= RADIUS:
+				image.set_pixel(x, y, color)
+			elif dist <= RADIUS + 2.0:
+				image.set_pixel(x, y, color.darkened(0.3))
+	return ImageTexture.create_from_image(image)
+
+
 func setup(data: MarbleData, player_id: int, color: Color) -> void:
 	marble_data = data
 	owner_player_id = player_id
@@ -25,11 +43,18 @@ func setup(data: MarbleData, player_id: int, color: Color) -> void:
 		physics_material_override = phys_mat
 
 	add_to_group("field_marbles")
-	queue_redraw()
+
+	var tex: Texture2D = null
+	if data and not data.card_name.is_empty():
+		var path := "res://assets/sprites/marbles/%s.png" % data.card_name.to_snake_case()
+		if ResourceLoader.exists(path):
+			var loaded := ResourceLoader.load(path)
+			if loaded is Texture2D:
+				tex = loaded
+	if not tex:
+		tex = make_circle_texture(_color)
+	_sprite.texture = tex
+
 
 func get_color() -> Color:
 	return _color
-
-func _draw() -> void:
-	draw_circle(Vector2.ZERO, RADIUS, _color)
-	draw_arc(Vector2.ZERO, RADIUS, 0, TAU, 16, _color.darkened(0.3), 2.0)
