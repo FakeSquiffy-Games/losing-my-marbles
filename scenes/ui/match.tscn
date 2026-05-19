@@ -29,6 +29,7 @@ script = ExtResource("1_script")
 [node name="CardManager" type="Control" parent="." unique_id=412274605]
 anchors_preset = 0
 script = ExtResource("3_card_manager")
+card_size = Vector2(74, 98)
 card_factory_scene = ExtResource("4_factory_scene")
 
 [node name="Field" parent="." unique_id=928684774 instance=ExtResource("2_field")]
