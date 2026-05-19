@@ -1,0 +1,113 @@
+[gd_scene format=3 uid="uid://bb7l0m5kjeo1o"]
+
+[ext_resource type="Script" uid="uid://cp8ankmolfqv0" path="res://scripts/gameplay/match_fsm.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://jk2jm1g6q853" path="res://addons/godot_state_charts/compound_state.gd" id="2_2cxxy"]
+[ext_resource type="Script" uid="uid://cytafq8i1y8qm" path="res://addons/godot_state_charts/atomic_state.gd" id="3_yu274"]
+[ext_resource type="Script" uid="uid://cf1nsco3w0mf6" path="res://addons/godot_state_charts/transition.gd" id="4_wgjvw"]
+
+[node name="MatchFSM" type="Node" unique_id=460765492]
+script = ExtResource("1_script")
+metadata/_custom_type_script = "uid://couw105c3bde4"
+
+[node name="RootState" type="Node" parent="." unique_id=1521410724]
+script = ExtResource("2_2cxxy")
+initial_state = NodePath("Init")
+metadata/_custom_type_script = "uid://jk2jm1g6q853"
+
+[node name="Init" type="Node" parent="RootState" unique_id=922271589]
+unique_name_in_owner = true
+script = ExtResource("3_yu274")
+metadata/_custom_type_script = "uid://cytafq8i1y8qm"
+
+[node name="ToDraw" type="Node" parent="RootState/Init" unique_id=1975264022]
+script = ExtResource("4_wgjvw")
+to = NodePath("../../Draw")
+event = &"begin"
+delay_in_seconds = "0.0"
+metadata/_custom_type_script = "uid://cf1nsco3w0mf6"
+
+[node name="Draw" type="Node" parent="RootState" unique_id=1175609408]
+unique_name_in_owner = true
+script = ExtResource("3_yu274")
+metadata/_custom_type_script = "uid://cytafq8i1y8qm"
+
+[node name="ToPlay" type="Node" parent="RootState/Draw" unique_id=521793125]
+script = ExtResource("4_wgjvw")
+to = NodePath("../../Play")
+event = &"draw_complete"
+delay_in_seconds = "0.0"
+metadata/_custom_type_script = "uid://cf1nsco3w0mf6"
+
+[node name="Play" type="Node" parent="RootState" unique_id=1945714304]
+unique_name_in_owner = true
+script = ExtResource("3_yu274")
+metadata/_custom_type_script = "uid://cytafq8i1y8qm"
+
+[node name="ToAim" type="Node" parent="RootState/Play" unique_id=1723145411]
+script = ExtResource("4_wgjvw")
+to = NodePath("../../Aim")
+event = &"aim"
+delay_in_seconds = "0.0"
+metadata/_custom_type_script = "uid://cf1nsco3w0mf6"
+
+[node name="ToEndTurn" type="Node" parent="RootState/Play" unique_id=1954033650]
+script = ExtResource("4_wgjvw")
+to = NodePath("../../EndTurn")
+event = &"end_turn"
+delay_in_seconds = "0.0"
+metadata/_custom_type_script = "uid://cf1nsco3w0mf6"
+
+[node name="Aim" type="Node" parent="RootState" unique_id=734673277]
+unique_name_in_owner = true
+script = ExtResource("3_yu274")
+metadata/_custom_type_script = "uid://cytafq8i1y8qm"
+
+[node name="ToSimulating" type="Node" parent="RootState/Aim" unique_id=498170247]
+script = ExtResource("4_wgjvw")
+to = NodePath("../../Simulating")
+event = &"shoot"
+delay_in_seconds = "0.0"
+metadata/_custom_type_script = "uid://cf1nsco3w0mf6"
+
+[node name="ToPlayFromAim" type="Node" parent="RootState/Aim" unique_id=3128579461]
+script = ExtResource("4_wgjvw")
+to = NodePath("../../Play")
+event = &"back"
+delay_in_seconds = "0.0"
+metadata/_custom_type_script = "uid://cf1nsco3w0mf6"
+
+[node name="Simulating" type="Node" parent="RootState" unique_id=1204950910]
+unique_name_in_owner = true
+script = ExtResource("3_yu274")
+metadata/_custom_type_script = "uid://cytafq8i1y8qm"
+
+[node name="ToPlayFromSim" type="Node" parent="RootState/Simulating" unique_id=548373821]
+script = ExtResource("4_wgjvw")
+to = NodePath("../../Play")
+event = &"sim_done"
+delay_in_seconds = "0.0"
+metadata/_custom_type_script = "uid://cf1nsco3w0mf6"
+
+[node name="EndTurn" type="Node" parent="RootState" unique_id=80660909]
+unique_name_in_owner = true
+script = ExtResource("3_yu274")
+metadata/_custom_type_script = "uid://cytafq8i1y8qm"
+
+[node name="ToDrawNext" type="Node" parent="RootState/EndTurn" unique_id=303657994]
+script = ExtResource("4_wgjvw")
+to = NodePath("../../Draw")
+event = &"next_turn"
+delay_in_seconds = "0.0"
+metadata/_custom_type_script = "uid://cf1nsco3w0mf6"
+
+[node name="ToMatchOver" type="Node" parent="RootState/EndTurn" unique_id=247219343]
+script = ExtResource("4_wgjvw")
+to = NodePath("../../MatchOver")
+event = &"match_over"
+delay_in_seconds = "0.0"
+metadata/_custom_type_script = "uid://cf1nsco3w0mf6"
+
+[node name="MatchOver" type="Node" parent="RootState" unique_id=1930274223]
+unique_name_in_owner = true
+script = ExtResource("3_yu274")
+metadata/_custom_type_script = "uid://cytafq8i1y8qm"

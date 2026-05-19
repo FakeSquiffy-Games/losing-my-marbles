@@ -1,0 +1,132 @@
+[gd_scene format=3 uid="uid://byjswyrj5ceke"]
+
+[ext_resource type="Script" uid="uid://dpdtcxrjbnv27" path="res://scripts/ui/deck_builder.gd" id="1_script"]
+
+[node name="DeckBuilder" type="Control" unique_id=-1403920065]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=-1336862664]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TitleLabel" type="Label" parent="VBoxContainer" unique_id=-582157735]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Deck Builder"
+horizontal_alignment = 1
+
+[node name="CardListsContainer" type="HBoxContainer" parent="VBoxContainer" unique_id=1027563894]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="AvailableVBox" type="VBoxContainer" parent="VBoxContainer/CardListsContainer" unique_id=-1457502284]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="AvailableLabel" type="Label" parent="VBoxContainer/CardListsContainer/AvailableVBox" unique_id=-347406273]
+layout_mode = 2
+text = "Available Cards"
+horizontal_alignment = 1
+
+[node name="CardTypeFilter" type="OptionButton" parent="VBoxContainer/CardListsContainer/AvailableVBox" unique_id=-1910211187]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="AvailableCardsList" type="ItemList" parent="VBoxContainer/CardListsContainer/AvailableVBox" unique_id=1728394056]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+allow_reselect = true
+
+[node name="MiddleVBox" type="VBoxContainer" parent="VBoxContainer/CardListsContainer" unique_id=-344495473]
+layout_mode = 2
+alignment = 1
+
+[node name="AddPrivateButton" type="Button" parent="VBoxContainer/CardListsContainer/MiddleVBox" unique_id=-1811017122]
+unique_name_in_owner = true
+layout_mode = 2
+text = "→ Private"
+
+[node name="AddPublicButton" type="Button" parent="VBoxContainer/CardListsContainer/MiddleVBox" unique_id=1739405826]
+unique_name_in_owner = true
+layout_mode = 2
+text = "→ Public"
+
+[node name="Spacer1" type="Control" parent="VBoxContainer/CardListsContainer/MiddleVBox" unique_id=-233130002]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+
+[node name="RemoveButton" type="Button" parent="VBoxContainer/CardListsContainer/MiddleVBox" unique_id=-712049836]
+unique_name_in_owner = true
+layout_mode = 2
+text = "← Remove"
+
+[node name="DeckVBox" type="VBoxContainer" parent="VBoxContainer/CardListsContainer" unique_id=-101361514]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="PrivateLabel" type="Label" parent="VBoxContainer/CardListsContainer/DeckVBox" unique_id=1284739605]
+layout_mode = 2
+text = "Private Deck"
+horizontal_alignment = 1
+
+[node name="PrivateDeckList" type="ItemList" parent="VBoxContainer/CardListsContainer/DeckVBox" unique_id=-535765813]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+allow_reselect = true
+
+[node name="PoolVBox" type="VBoxContainer" parent="VBoxContainer/CardListsContainer" unique_id=-1793028820]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="PublicLabel" type="Label" parent="VBoxContainer/CardListsContainer/PoolVBox" unique_id=-684672439]
+layout_mode = 2
+text = "Public Marble Pool"
+horizontal_alignment = 1
+
+[node name="PublicPoolList" type="ItemList" parent="VBoxContainer/CardListsContainer/PoolVBox" unique_id=-1420406203]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+allow_reselect = true
+
+[node name="BottomBar" type="HBoxContainer" parent="VBoxContainer" unique_id=1539204876]
+layout_mode = 2
+
+[node name="PoolStatusLabel" type="Label" parent="VBoxContainer/BottomBar" unique_id=-1200154722]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 12.0
+text = "Public Marble Pool (0/5)"
+horizontal_alignment = 1
+
+[node name="DefaultFillButton" type="Button" parent="VBoxContainer/BottomBar" unique_id=213953091]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Default"
+
+[node name="BackButton" type="Button" parent="VBoxContainer/BottomBar" unique_id=-27773446]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Back"
+
+[node name="ReadyButton" type="Button" parent="VBoxContainer/BottomBar" unique_id=966846863]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Confirm"

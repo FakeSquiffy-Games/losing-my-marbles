@@ -1,0 +1,215 @@
+[gd_scene format=3 uid="uid://ciuun2pvc63qs"]
+
+[ext_resource type="Script" uid="uid://bfi2aawhgj4fn" path="res://scripts/ui/match.gd" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://buic5a5c3jtlm" path="res://scenes/gameplay/field.tscn" id="2_field"]
+[ext_resource type="Script" uid="uid://clqgq1n7v0ar" path="res://addons/card-framework/card_manager.gd" id="3_card_manager"]
+[ext_resource type="PackedScene" path="res://scenes/ui/card_data_factory.tscn" id="4_factory_scene"]
+[ext_resource type="Script" uid="uid://dj46jo3lfbclo" path="res://addons/card-framework/hand.gd" id="5_hand"]
+[ext_resource type="Script" uid="uid://d0wh308ud43qv" path="res://scripts/ui/play_area.gd" id="6_play_area"]
+
+[sub_resource type="Curve" id="Curve_hand_rot"]
+_limits = [-15.0, 15.0, 0.0, 1.0]
+_data = [Vector2(0, -15), 0.0, 30.0, 0, 1, Vector2(1, 15), 30.0, 0.0, 1, 0]
+point_count = 2
+
+[sub_resource type="Curve" id="Curve_hand_vert"]
+_limits = [0.0, 50.0, 0.0, 1.0]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.5, 40), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[node name="Match" type="Control" unique_id=1521104756]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="CardManager" type="Control" parent="." unique_id=412274605]
+anchors_preset = 0
+script = ExtResource("3_card_manager")
+card_factory_scene = ExtResource("4_factory_scene")
+
+[node name="Field" parent="." unique_id=928684774 instance=ExtResource("2_field")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TableFrame" type="Control" parent="." unique_id=1380024906]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="TableBackground" type="ColorRect" parent="TableFrame" unique_id=1529676013]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+color = Color(0.08, 0.1, 0.08, 1)
+
+[node name="PlayArea" type="Control" parent="TableFrame" unique_id=434396005]
+unique_name_in_owner = true
+layout_mode = 1
+anchor_left = 0.1
+anchor_top = 0.1
+anchor_right = 0.9
+anchor_bottom = 0.72
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+script = ExtResource("6_play_area")
+
+[node name="Hand" type="Control" parent="TableFrame" unique_id=900730006]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -300.0
+offset_top = -200.0
+offset_right = 300.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 1
+script = ExtResource("5_hand")
+max_hand_spread = 600
+hand_rotation_curve = SubResource("Curve_hand_rot")
+hand_vertical_curve = SubResource("Curve_hand_vert")
+hand_anchor = 1
+
+[node name="StatusPanel" type="Control" parent="." unique_id=1361038674]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 320.0
+offset_bottom = 170.0
+mouse_filter = 1
+
+[node name="StatusLabels" type="VBoxContainer" parent="StatusPanel" unique_id=1691887908]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PhaseLabel" type="Label" parent="StatusPanel/StatusLabels" unique_id=1737652198]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Pre-Match"
+horizontal_alignment = 1
+
+[node name="TurnLabel" type="Label" parent="StatusPanel/StatusLabels" unique_id=1863317829]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Turn: 0"
+horizontal_alignment = 1
+
+[node name="PlayerLabel" type="Label" parent="StatusPanel/StatusLabels" unique_id=1433944884]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Active Player: 1"
+horizontal_alignment = 1
+
+[node name="HealthLabel" type="Label" parent="StatusPanel/StatusLabels" unique_id=1159610497]
+unique_name_in_owner = true
+layout_mode = 2
+text = "HP  P1: 100  |  P2: 100"
+horizontal_alignment = 1
+
+[node name="ManaLabel" type="Label" parent="StatusPanel/StatusLabels" unique_id=1858790185]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Mana  P1: 0  |  P2: 0"
+horizontal_alignment = 1
+
+[node name="ControlsPanel" type="Control" parent="." unique_id=892296654]
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -200.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = -16.0
+grow_horizontal = 0
+grow_vertical = 2
+mouse_filter = 1
+
+[node name="ControlsVBox" type="VBoxContainer" parent="ControlsPanel" unique_id=1548368914]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="PhaseButtons" type="VBoxContainer" parent="ControlsPanel/ControlsVBox" unique_id=1584652854]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="ReadyButton" type="Button" parent="ControlsPanel/ControlsVBox/PhaseButtons" unique_id=1114835295]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "Ready"
+
+[node name="AimButton" type="Button" parent="ControlsPanel/ControlsVBox/PhaseButtons" unique_id=1203908781]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "Aim"
+
+[node name="EndTurnButton" type="Button" parent="ControlsPanel/ControlsVBox/PhaseButtons" unique_id=294282204]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "End Turn"
+
+[node name="ExecuteButton" type="Button" parent="ControlsPanel/ControlsVBox/PhaseButtons" unique_id=-2090773439]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "Execute Shot"
+
+[node name="AimBackButton" type="Button" parent="ControlsPanel/ControlsVBox/PhaseButtons" unique_id=-565406194]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "Back"
+
+[node name="AimControlsContainer" type="VBoxContainer" parent="ControlsPanel/ControlsVBox" unique_id=537898991]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="ControlsSpacer" type="Control" parent="ControlsPanel/ControlsVBox" unique_id=648477885]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="BackButton" type="Button" parent="ControlsPanel/ControlsVBox" unique_id=894684008]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Leave Match"

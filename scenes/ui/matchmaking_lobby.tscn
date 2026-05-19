@@ -1,0 +1,101 @@
+[gd_scene format=3 uid="uid://bm0v16vry3pjp"]
+
+[ext_resource type="Script" uid="uid://bmujvh0nkk8iw" path="res://scripts/ui/matchmaking_lobby.gd" id="1_script"]
+
+[node name="MatchmakingLobby" type="Control" unique_id=1099941222]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=447497351]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TabContainer" type="TabContainer" parent="VBoxContainer" unique_id=552622358]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+current_tab = 0
+
+[node name="HostSection" type="VBoxContainer" parent="VBoxContainer/TabContainer" unique_id=1700473778]
+unique_name_in_owner = true
+layout_mode = 2
+metadata/_tab_index = 0
+
+[node name="SessionKeyTitle" type="Label" parent="VBoxContainer/TabContainer/HostSection" unique_id=1190942968]
+layout_mode = 2
+text = "Your Session Key:"
+horizontal_alignment = 1
+
+[node name="HostKeyLabel" type="Label" parent="VBoxContainer/TabContainer/HostSection" unique_id=916561848]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 48
+text = "------"
+horizontal_alignment = 1
+
+[node name="HostPlayerList" type="ItemList" parent="VBoxContainer/TabContainer/HostSection" unique_id=1908045522]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+allow_reselect = true
+
+[node name="HostStatusLabel" type="Label" parent="VBoxContainer/TabContainer/HostSection" unique_id=965910543]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Press 'Host Game' to start"
+horizontal_alignment = 1
+
+[node name="HostButtons" type="HBoxContainer" parent="VBoxContainer/TabContainer/HostSection" unique_id=1229961747]
+layout_mode = 2
+alignment = 1
+
+[node name="HostStartButton" type="Button" parent="VBoxContainer/TabContainer/HostSection/HostButtons" unique_id=2008908886]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Host Game"
+
+[node name="HostBackButton" type="Button" parent="VBoxContainer/TabContainer/HostSection/HostButtons" unique_id=339676248]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Back"
+
+[node name="JoinSection" type="VBoxContainer" parent="VBoxContainer/TabContainer" unique_id=476320389]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+metadata/_tab_index = 1
+
+[node name="JoinKeyTitle" type="Label" parent="VBoxContainer/TabContainer/JoinSection" unique_id=800814797]
+layout_mode = 2
+text = "Enter Session Key:"
+horizontal_alignment = 1
+
+[node name="JoinKeyInput" type="LineEdit" parent="VBoxContainer/TabContainer/JoinSection" unique_id=629904108]
+unique_name_in_owner = true
+layout_mode = 2
+placeholder_text = "e.g. ABC123"
+max_length = 6
+
+[node name="JoinButton" type="Button" parent="VBoxContainer/TabContainer/JoinSection" unique_id=1053489266]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Join Game"
+
+[node name="JoinStatusLabel" type="Label" parent="VBoxContainer/TabContainer/JoinSection" unique_id=235027776]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_alignment = 1
+
+[node name="JoinBackButton" type="Button" parent="VBoxContainer/TabContainer/JoinSection" unique_id=1852415428]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Back"

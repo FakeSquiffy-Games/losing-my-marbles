@@ -1,0 +1,57 @@
+[gd_scene format=3 uid="uid://buic5a5c3jtlm"]
+
+[ext_resource type="Script" uid="uid://diwisxl1ucnsq" path="res://scripts/gameplay/field.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://bd046eokvcnu2" path="res://addons/phantom_camera/scripts/phantom_camera_host/phantom_camera_host.gd" id="2_7156t"]
+[ext_resource type="Script" uid="uid://bhexx6mj1xv3q" path="res://addons/phantom_camera/scripts/phantom_camera/phantom_camera_2d.gd" id="3_pn4dk"]
+[ext_resource type="Script" uid="uid://8umksf8e80fw" path="res://addons/phantom_camera/scripts/resources/tween_resource.gd" id="4_wnvii"]
+
+[sub_resource type="Resource" id="Resource_tcubs"]
+script = ExtResource("4_wnvii")
+
+[sub_resource type="RectangleShape2D" id="1_rect"]
+size = Vector2(900, 500)
+
+[node name="FieldContainer" type="SubViewportContainer" unique_id=1001455569]
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="." unique_id=796698120]
+handle_input_locally = false
+size = Vector2i(2, 2)
+render_target_update_mode = 4
+
+[node name="Field" type="Node2D" parent="SubViewport" unique_id=1941018831]
+script = ExtResource("1_script")
+
+[node name="Camera2D" type="Camera2D" parent="SubViewport/Field" unique_id=91595720]
+unique_name_in_owner = true
+top_level = true
+position = Vector2(450, 250)
+ignore_rotation = false
+
+[node name="PhantomCameraHost" type="Node" parent="SubViewport/Field/Camera2D" unique_id=717903094]
+process_priority = 300
+process_physics_priority = 300
+script = ExtResource("2_7156t")
+metadata/_custom_type_script = "uid://bd046eokvcnu2"
+
+[node name="BoardOverviewCamera" type="Node2D" parent="SubViewport/Field" unique_id=1597798547]
+unique_name_in_owner = true
+position = Vector2(450, 250)
+script = ExtResource("3_pn4dk")
+priority = 10
+tween_resource = SubResource("Resource_tcubs")
+metadata/_custom_type_script = "uid://bhexx6mj1xv3q"
+
+[node name="Background" type="ColorRect" parent="SubViewport/Field" unique_id=660430404]
+unique_name_in_owner = true
+offset_right = 900.0
+offset_bottom = 500.0
+color = Color(0.15, 0.2, 0.15, 1)
+
+[node name="GravityZone" type="Area2D" parent="SubViewport/Field" unique_id=1704069582]
+unique_name_in_owner = true
+gravity_space_override = 3
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="SubViewport/Field/GravityZone" unique_id=782654351]
+position = Vector2(450, 250)
+shape = SubResource("1_rect")

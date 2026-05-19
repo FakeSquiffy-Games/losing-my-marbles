@@ -1,0 +1,56 @@
+[gd_scene format=3 uid="uid://1hf2xat8ikhk"]
+
+[ext_resource type="Script" uid="uid://bn1eapls0tddv" path="res://scripts/ui/main_menu.gd" id="1_script"]
+
+[node name="MainMenu" type="Control" unique_id=746825739]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=642455398]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = -120.0
+offset_right = 150.0
+offset_bottom = 120.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Title" type="Label" parent="VBoxContainer" unique_id=1968033754]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Losing My Marbles!"
+horizontal_alignment = 1
+
+[node name="Spacer1" type="Control" parent="VBoxContainer" unique_id=911535849]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+
+[node name="OnlineButton" type="Button" parent="VBoxContainer" unique_id=1701432899]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Play Online"
+
+[node name="OfflineButton" type="Button" parent="VBoxContainer" unique_id=1781888267]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Play Offline"
+
+[node name="DeckBuilderButton" type="Button" parent="VBoxContainer" unique_id=1491080569]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Deck Builder"
+
+[node name="QuitButton" type="Button" parent="VBoxContainer" unique_id=331604129]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Quit"

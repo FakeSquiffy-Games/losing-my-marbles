@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/card_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+card_name = "Ice Terrain"
+type = 3
+mana_cost = 3
+description = "Covers the field in ice. Marbles slide with greatly reduced friction."
+effects = []
