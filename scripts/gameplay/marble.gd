@@ -2,10 +2,10 @@ class_name Marble
 extends RigidBody2D
 
 const RADIUS: float = 15.0
+const MARBLE_COLOR := Color(0.82, 0.82, 0.85, 1.0)
 
 var marble_data: MarbleData = null
 var owner_player_id: int = 0
-var _color: Color = Color.WHITE
 
 var _sprite: Sprite2D = null
 
@@ -25,10 +25,9 @@ static func make_circle_texture(color: Color) -> ImageTexture:
 	return ImageTexture.create_from_image(image)
 
 
-func setup(data: MarbleData, player_id: int, color: Color) -> void:
+func setup(data: MarbleData, player_id: int) -> void:
 	marble_data = data
 	owner_player_id = player_id
-	_color = color
 
 	linear_velocity = Vector2.ZERO
 	angular_velocity = 0.0
@@ -52,11 +51,7 @@ func setup(data: MarbleData, player_id: int, color: Color) -> void:
 			if loaded is Texture2D:
 				tex = loaded
 	if not tex:
-		tex = make_circle_texture(_color)
+		tex = make_circle_texture(MARBLE_COLOR)
 	if not _sprite:
 		_sprite = get_node("%Sprite") as Sprite2D
 	_sprite.texture = tex
-
-
-func get_color() -> Color:
-	return _color

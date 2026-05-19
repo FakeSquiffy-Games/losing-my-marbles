@@ -36,29 +36,22 @@ func _spawn_initial_marbles() -> void:
 		print("[FSM] No game_field found for spawning")
 		return
 
-	var field := fields[0] as Node2D
-	const MARBLES_PER_PLAYER := 3
-	const MARGIN := 80.0
+	var field := fields[0]
+	const TOTAL_MARBLES := 6
+	const FIELD_CENTER := Vector2(450.0, 250.0)
+	const FIELD_RADIUS := 220.0
+	const WALL_THICKNESS := 12.0
+	const MARGIN := Marble.RADIUS + WALL_THICKNESS + 10.0
+	const SPAWN_RADIUS := FIELD_RADIUS - MARGIN
 
-	var p1_preferred: Array[Vector2] = [
-		Vector2(310, 250),
-		Vector2(320, 200),
-		Vector2(320, 300),
-	]
-	var p2_preferred: Array[Vector2] = [
-		Vector2(590, 250),
-		Vector2(580, 200),
-		Vector2(580, 300),
-	]
-
-	for i: int in MARBLES_PER_PLAYER:
+	for i: int in TOTAL_MARBLES:
 		var marble_data := MarblePoolManager.get_marble()
-		var pos_p1: Vector2 = field.find_valid_position(p1_preferred[i])
-		field.spawn_marble(marble_data, 1, pos_p1, Color.RED)
-
-		var marble_data2 := MarblePoolManager.get_marble()
-		var pos_p2: Vector2 = field.find_valid_position(p2_preferred[i])
-		field.spawn_marble(marble_data2, 2, pos_p2, Color.BLUE)
+		var angle := randf() * TAU
+		var dist := randf() * SPAWN_RADIUS * 0.5
+		var preferred := FIELD_CENTER + Vector2.RIGHT.rotated(angle) * dist
+		var pos: Vector2 = field.find_valid_position(preferred)
+		var pid := (i % 2) + 1
+		field.spawn_marble(marble_data, pid, pos)
 
 	print("[FSM] Initial marbles spawned")
 	field.sync_marbles_to_clients()

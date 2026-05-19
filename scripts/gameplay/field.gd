@@ -73,9 +73,9 @@ func set_gravity(direction: Vector2, magnitude: float) -> void:
 	gravity_magnitude = magnitude
 	_apply_gravity()
 
-func spawn_marble(data: MarbleData, player_id: int, position: Vector2, color: Color) -> Marble:
+func spawn_marble(data: MarbleData, player_id: int, position: Vector2) -> Marble:
 	var marble := MARBLE_SCENE.instantiate() as Marble
-	marble.setup(data, player_id, color)
+	marble.setup(data, player_id)
 	marble.position = position
 	add_child(marble)
 	return marble
@@ -87,13 +87,11 @@ func sync_marbles_to_clients() -> void:
 	for body in get_tree().get_nodes_in_group("field_marbles"):
 		if body is Marble:
 			var m := body as Marble
-			var c := m.get_color()
 			data.append({
 				"id": m.get_instance_id(),
 				"pos_x": m.global_position.x,
 				"pos_y": m.global_position.y,
 				"pid": m.owner_player_id,
-				"cr": c.r, "cg": c.g, "cb": c.b,
 			})
 	_sync_marble_state.rpc(data)
 
@@ -175,9 +173,8 @@ func _spawn_shooter_sample() -> void:
 		return
 	var shooter_id := MatchManager.active_player_id
 	var data := MarblePoolManager.get_marble()
-	var color := Color.RED if shooter_id == 1 else Color.BLUE
 	var pos := _get_shooter_spawn_pos(shooter_id)
-	_shooter_sample_marble = spawn_marble(data, shooter_id, pos, color)
+	_shooter_sample_marble = spawn_marble(data, shooter_id, pos)
 	_shooter_sample_marble.freeze = true
 	_update_shooter_marble_position(_current_rotation_degrees)
 
@@ -191,9 +188,8 @@ func spawn_shooter_marble(data: MarbleData, player_id: int) -> void:
 		_shooter_sample_marble.queue_free()
 		_shooter_sample_marble = null
 
-	var color := Color.RED if player_id == 1 else Color.BLUE
 	var pos := _get_shooter_spawn_pos(player_id)
-	_shooter_sample_marble = spawn_marble(data, player_id, pos, color)
+	_shooter_sample_marble = spawn_marble(data, player_id, pos)
 	_shooter_sample_marble.freeze = true
 	_update_shooter_marble_position(_current_rotation_degrees)
 	print("[Field] Shooter marble spawned for player %d from card '%s'" % [player_id, data.card_name])
@@ -425,8 +421,7 @@ func _spawn_field_marbles_from_pool(count: int) -> void:
 		var preferred := FIELD_CENTER + Vector2.RIGHT.rotated(angle) * dist
 		var pos := find_valid_position(preferred, Marble.RADIUS)
 		var pid := (i % 2) + 1
-		var color := Color.RED if pid == 1 else Color.BLUE
-		spawn_marble(data, pid, pos, color)
+		spawn_marble(data, pid, pos)
 
 	print("[Field] Spawned %d marbles from pool at random center positions" % marbles.size())
 
@@ -480,14 +475,12 @@ func _sync_marble_state(data: Array) -> void:
 		var marble_id: int = entry["id"]
 		var pos := Vector2(entry["pos_x"], entry["pos_y"])
 		var player_id: int = entry["pid"]
-		var color := Color(entry["cr"], entry["cg"], entry["cb"])
-		_create_client_marble(marble_id, pos, player_id, color)
+		_create_client_marble(marble_id, pos, player_id)
 
-func _create_client_marble(marble_id: int, pos: Vector2, player_id: int, color: Color) -> void:
+func _create_client_marble(marble_id: int, pos: Vector2, player_id: int) -> void:
 	var visual := ClientMarbleVisual.new()
 	visual.marble_id = marble_id
 	visual.player_id = player_id
-	visual.marble_color = color
 	visual.position = pos
 	add_child(visual)
 	_client_marbles[marble_id] = visual
