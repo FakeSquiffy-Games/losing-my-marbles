@@ -21,7 +21,7 @@ var frame_rect: TextureRect = null
 func apply_card_data(card_data: CardData) -> void:
 	_ensure_nodes()
 	frame_rect.texture = _get_frame(card_data.type)
-	sprite_rect.texture = _make_sprite(card_data.type)
+	sprite_rect.texture = _get_card_sprite(card_data)
 	mana_label.text = str(card_data.mana_cost)
 	name_label.text = card_data.card_name
 	desc_label.text = card_data.description if not card_data.description.is_empty() else ""
@@ -143,6 +143,25 @@ static func _make_sprite(type: int) -> ImageTexture:
 				image.set_pixel(x, y, dark.lerp(Color(0.05, 0.05, 0.08, 1.0), t))
 
 	return ImageTexture.create_from_image(image)
+
+
+static func _type_subdir(type: int) -> String:
+	match type:
+		0: return "marbles"
+		1: return "power_ups"
+		2: return "tricks"
+		3: return "terrain"
+		4: return "aoe"
+	return "marbles"
+
+
+static func _get_card_sprite(card_data: CardData) -> ImageTexture:
+	var path := "res://assets/sprites/cards/%s/%s.png" % [_type_subdir(card_data.type), card_data.card_name.to_snake_case()]
+	if ResourceLoader.exists(path):
+		var loaded := ResourceLoader.load(path)
+		if loaded is Texture2D:
+			return loaded
+	return _make_sprite(card_data.type)
 
 
 # -- Back face generation (cached) --
