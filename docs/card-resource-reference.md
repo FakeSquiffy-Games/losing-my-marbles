@@ -178,42 +178,69 @@ Marbles use `MarbleData` (extends `CardData` with `PhysicsObjectData`).
 
 | File | Card Name | Cost | Weight | Friction | Elasticity | Effect | Notes |
 |---|---|---|---|---|---|---|---|
-| `marble_standard.tres` | Marble Standard | 0 | 1.0 | 1.0 | 0.5 | — | Baseline marble |
-| `marble_heavy.tres` | Marble Heavy | 0 | 2.0 | 1.2 | 0.2 | — | Harder to knock out, slower shooter |
-| `marble_bouncy.tres` | Marble Bouncy | 0 | 0.7 | 0.3 | 0.9 | — | Fast, high energy transfer |
-| `marble_onslaught.tres` | Marble Onslaught | 1 | 2.0 | 1.5 | 0.2 | deal_damage 15 to KNOCKER_OPP on SIM | Durable; damages shooter's opponent on knockout |
-| `marble_vitality.tres` | Marble Vitality | 1 | 1.8 | 1.4 | 0.25 | heal 10 to KNOCKER on SIM | Durable; heals shooter on knockout |
-| `marble_siphon.tres` | Marble Siphon | 1 | 1.8 | 1.4 | 0.2 | drain_mana 2 to KNOCKER_OPP on SIM | Durable; drains shooter's opponent mana on knockout |
-| `marble_conduit.tres` | Marble Conduit | 1 | 1.8 | 1.3 | 0.25 | restore_mana 2 to KNOCKER on SIM | Durable; restores shooter mana on knockout |
+| `marble_normal.tres` | Cat's Eye | 0 | 1.0 | 1.0 | 0.5 | — | Baseline marble |
+| `marble_heavy.tres` | Chrome Ball | 0 | 2.0 | 1.2 | 0.2 | — | Harder to knock out, slower shooter |
+| `marble_light.tres` | Ping Pong Ball | 0 | 0.4 | 0.3 | 0.7 | — | Very light, moderate bounce |
+| `marble_sticky.tres` | Gumball | 0 | 1.2 | 1.8 | 0.05 | — | Extreme friction, stops dead on impact |
+| `marble_soft.tres` | Orbeez | 0 | 0.6 | 0.8 | 0.02 | — | Near-zero bounce, absorbs all impact |
+| `marble_bouncy.tres` | Jackstone | 0 | 0.7 | 0.3 | 0.9 | — | Fast, extreme elasticity, wild ricochets |
+| `marble_double_damage.tres` | 8 Pool Ball | 1 | 2.0 | 1.5 | 0.2 | deal_damage 15 to KNOCKER_OPP on SIM | Damages shooter's opponent on knockout |
+| `marble_heal_ball.tres` | Rambutan | 1 | 1.8 | 1.4 | 0.25 | heal 10 to KNOCKER on SIM | Heals shooter on knockout |
+| `marble_siphon.tres` | Marble Siphon | 1 | 1.8 | 1.4 | 0.2 | drain_mana 2 to KNOCKER_OPP on SIM | Drains shooter's opponent mana on knockout |
+| `marble_energy_regen.tres` | Dragon Ball | 1 | 1.8 | 1.3 | 0.25 | restore_mana 2 to KNOCKER on SIM | Restores shooter mana on knockout |
+| `marble_high_damage.tres` | Hello Kitty Marble | 2 | 2.2 | 1.6 | 0.15 | deal_damage 30 to KNOCKER_OPP on SIM | Heavy hitter; high knockout penalty |
 
 ### 4.2 Power-Up Cards (`type=1`)
 
-Power-ups use `CardData`. Effects arrays are defined but currently empty — content deferred to later phases.
+Power-ups use `CardData`. PLAY trigger, SELF target — provide advantage to the casting player.
 
-| File | Card Name | Cost | Effects |
-|---|---|---|---|
-| `powerup_accuracy.tres` | Accuracy | 1 | (empty) |
-| `powerup_boost.tres` | Power Boost | 1 | (empty) |
+| File | Card Name | Cost | Effect | Notes |
+|---|---|---|---|---|
+| `buff_instant_heal.tres` | Miks Vaporub | 2 | heal 15 to SELF on PLAY | Instant health recovery |
+| `buff_energy_regen.tres` | Mylo | 1 | restore_mana 2 to SELF on PLAY | Light energy regen |
+| `buff_energy_regen_plus.tres` | Peak Dew | 2 | restore_mana 4 to SELF on PLAY | Strong energy regen |
 
 ### 4.3 Trick Cards (`type=2`)
 
-| File | Card Name | Cost | Effects |
-|---|---|---|---|
-| `trick_swap.tres` | Swap | 2 | (empty) |
+Tricks use `CardData`. PLAY trigger, outward-targeted effects.
+
+| File | Card Name | Cost | Effect | Notes |
+|---|---|---|---|---|
+| `trick_remove_terrain.tres` | Asian Nanay | 2 | clear_terrain to FIELD_MAP on PLAY | Clears all active field modifiers |
+| `trick_energy_drain.tres` | Datu Aslum | 1 | drain_mana 2 to OPPONENT on PLAY | Drains opponent's mana |
+| `trick_jamming_session.tres` | Jamming Session | 3 | restore_mana 3 to BOTH on PLAY | Restores mana to both players |
 
 ### 4.4 Terrain Cards (`type=3`)
 
-| File | Card Name | Cost | Effects |
-|---|---|---|---|
-| `terrain_ice.tres` | Ice Terrain | 3 | (empty) |
-| `terrain_honey.tres` | Honey Terrain | 3 | (empty) |
+Terrain cards use `CardData`. PLAY trigger, FIELD_MAP target. Only one terrain active at a time — terrain deltas overwrite each other.
+
+| File | Card Name | Cost | Effect | Notes |
+|---|---|---|---|---|
+| `terrain_wind.tres` | Electric Fan | 2 | set_gravity -0.3 to FIELD_MAP on PLAY | Upward wind; marbles fall slowly |
+| `terrain_hose.tres` | Turning on the Hose | 2 | set_linear_damp 0.6 to FIELD_MAP on PLAY | Wet ground; increased friction |
 
 ### 4.5 Area-of-Effect Cards (`type=4`)
 
-| File | Card Name | Cost | Effects |
-|---|---|---|---|
-| `aoe_sticky_zone.tres` | Sticky Zone | 2 | (empty) |
-| `aoe_gravity_well.tres` | Gravity Well | 2 | (empty) |
+AoE cards use `CardData`. PLAY trigger, FIELD_MAP target. Apply temporary physics deltas that stack additively and auto-expire after 2 turns.
+
+| File | Card Name | Cost | Effect | Notes |
+|---|---|---|---|---|
+| `aoe_sticky_zone.tres` | Elemar's Glue | 2 | apply_aoe 0.8 to FIELD_MAP on PLAY | High-friction zone, 2-turn duration |
+| `aoe_oil.tres` | Oil | 2 | apply_aoe -0.4 to FIELD_MAP on PLAY | Low-friction slick, 2-turn duration |
+
+### 4.6 Archived Sample Cards
+
+The following sample cards are archived at `resources/cards/archive/`. They are **not** in active rotation:
+
+| File | Card Name | Type |
+|---|---|---|
+| `powerup_accuracy.tres` | Accuracy | Power-Up |
+| `powerup_boost.tres` | Power Boost | Power-Up |
+| `trick_swap.tres` | Swap | Trick |
+| `terrain_ice.tres` | Ice Terrain | Terrain |
+| `terrain_honey.tres` | Honey Terrain | Terrain |
+| `aoe_sticky_zone.tres` | Sticky Zone | AoE |
+| `aoe_gravity_well.tres` | Gravity Well | AoE |
 
 ---
 

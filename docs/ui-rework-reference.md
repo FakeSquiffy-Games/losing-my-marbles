@@ -13,9 +13,13 @@ This section is the quick-start for creating and dropping in visual assets. The 
 ```
 res://assets/sprites/
 ├── marbles/            # Marble sprites — auto-loaded by card_name
-├── cards/              # Card-frame and sprite textures
-│   ├── frames/         # Per-card-type frame textures
-│   └── sprites/        # Per-card-name sprite textures (hole fill)
+├── cards/              # Card sprite textures (auto-loaded, type-separated)
+│   ├── marbles/        # Marble card-in-hand sprites
+│   ├── power_ups/      # Buff card sprites
+│   ├── tricks/         # Trick card sprites
+│   ├── terrain/        # Terrain card sprites
+│   └── aoe/            # AoE card sprites
+├── frames/             # Per-card-type frame textures
 └── ui/                 # Other UI textures
     └── card_back.png   # Shared card-back texture
 ```
@@ -36,13 +40,17 @@ Marbles **automatically** load a PNG based on the card name. No code changes nee
 
 | Card Name | Filename |
 |---|---|
-| Marble Standard | `marble_standard.png` |
-| Marble Heavy | `marble_heavy.png` |
-| Marble Bouncy | `marble_bouncy.png` |
-| Marble Onslaught | `marble_onslaught.png` |
-| Marble Vitality | `marble_vitality.png` |
+| Cat's Eye | `cat_s_eye.png` |
+| Chrome Ball | `chrome_ball.png` |
+| Ping Pong Ball | `ping_pong_ball.png` |
+| Gumball | `gumball.png` |
+| Orbeez | `orbeez.png` |
+| Jackstone | `jackstone.png` |
+| 8 Pool Ball | `8_pool_ball.png` |
+| Rambutan | `rambutan.png` |
 | Marble Siphon | `marble_siphon.png` |
-| Marble Conduit | `marble_conduit.png` |
+| Dragon Ball | `dragon_ball.png` |
+| Hello Kitty Marble | `hello_kitty_marble.png` |
 
 **How it works:** `Marble.setup()` builds the path `res://assets/sprites/marbles/{card_name.to_snake_case()}.png`, checks if it exists, loads it, and assigns it to the `%Sprite` node. If the file doesn't exist, the procedural circle fallback renders instead. You can add files incrementally — each marble type falls back independently.
 
@@ -79,32 +87,43 @@ Each card has a 130×110 px sprite that fills the transparent hole in the frame.
 
 | Property | Value |
 |---|---|
-| **Directory** | `res://assets/sprites/cards/sprites/` |
+| **Directory** | `res://assets/sprites/cards/{type_subdir}/` (see below) |
 | **Format** | PNG, RGBA8 |
 | **Size** | 130×110 px |
-| **14 files needed** | One per card name (see below) |
+| **10 files needed** | One per non-marble card name (see below) |
 | **Fallback** | Procedural gradient circle in the card type's accent color |
 
-**Filenames** — snake_case of card name:
+**Code wiring already done.** `CardVisualController._get_card_sprite(card_data)` builds the path `res://assets/sprites/cards/{type_subdir}/{card_name.to_snake_case()}.png`, loads it if it exists, and falls back to the procedural gradient circle. Just drop PNGs into the right directory.
 
-| Card Name | Filename | Card Type |
-|---|---|---|
-| Marble Standard | `marble_standard.png` | Marble |
-| Marble Heavy | `marble_heavy.png` | Marble |
-| Marble Bouncy | `marble_bouncy.png` | Marble |
-| Marble Onslaught | `marble_onslaught.png` | Marble |
-| Marble Vitality | `marble_vitality.png` | Marble |
-| Marble Siphon | `marble_siphon.png` | Marble |
-| Marble Conduit | `marble_conduit.png` | Marble |
-| Power Boost | `power_boost.png` | Power-Up |
-| Accuracy | `accuracy.png` | Power-Up |
-| Swap | `swap.png` | Trick |
-| Ice Terrain | `ice_terrain.png` | Terrain |
-| Honey Terrain | `honey_terrain.png` | Terrain |
-| Sticky Zone | `sticky_zone.png` | AoE |
-| Gravity Well | `gravity_well.png` | AoE |
+**Filenames** — snake_case of card name, organized by type subdirectory:
 
-**To wire up real assets:** In `card_visual_controller.gd`, change `_make_sprite(type)` to accept a card_name parameter and `load()` from `res://assets/sprites/cards/sprites/{card_name.to_snake_case()}.png`.
+**`cards/power_ups/`** (type=1):
+| Card Name | Filename |
+|---|---|
+| Miks Vaporub | `miks_vaporub.png` |
+| Mylo | `mylo.png` |
+| Peak Dew | `peak_dew.png` |
+
+**`cards/tricks/`** (type=2):
+| Card Name | Filename |
+|---|---|
+| Asian Nanay | `asian_nanay.png` |
+| Datu Aslum | `datu_aslum.png` |
+| Jamming Session | `jamming_session.png` |
+
+**`cards/terrain/`** (type=3):
+| Card Name | Filename |
+|---|---|
+| Electric Fan | `electric_fan.png` |
+| Turning on the Hose | `turning_on_the_hose.png` |
+
+**`cards/aoe/`** (type=4):
+| Card Name | Filename |
+|---|---|
+| Elemar's Glue | `elemar_s_glue.png` |
+| Oil | `oil.png` |
+
+**`cards/marbles/`** (type=0) — same filenames as Section 1 marble table above.
 
 ### 4. Card Back Texture (needs code wiring)
 
@@ -121,7 +140,7 @@ Each card has a 130×110 px sprite that fills the transparent hole in the frame.
 
 **Step 1 — Marbles (zero code changes):**
 - [ ] Create `res://assets/sprites/marbles/` directory
-- [ ] Draw and export 7 marble PNGs using the exact filenames from section 1
+- [ ] Draw and export 11 marble PNGs using the exact filenames from section 1
 - [ ] Drop them in the folder
 - [ ] Launch game — each marble type that has a PNG uses it; missing ones fall back to procedural circles
 
@@ -134,10 +153,10 @@ Each card has a 130×110 px sprite that fills the transparent hole in the frame.
 - [ ] Draw 5 frame PNGs (150×210, transparent hole) using filenames from section 2
 - [ ] Update `_make_frame(type)` in `card_visual_controller.gd` to load from file with procedural fallback
 
-**Step 4 — Card sprites (one code change, 14 assets):**
-- [ ] Create `res://assets/sprites/cards/sprites/` directory
-- [ ] Draw 14 sprite PNGs (130×110) using filenames from section 3
-- [ ] Update `_make_sprite(type)` in `card_visual_controller.gd` to accept card_name and load from file with procedural fallback
+**Step 4 — Card sprites (zero code changes, 10 assets):**
+- [ ] Create `res://assets/sprites/cards/` subdirectories: `power_ups/`, `tricks/`, `terrain/`, `aoe/`, `marbles/`
+- [ ] Draw 10 sprite PNGs (130×110) for non-marble cards using filenames from section 3
+- [ ] Drop them in their type subdirectories — code wiring is already done via `_get_card_sprite()`
 
 ---
 
