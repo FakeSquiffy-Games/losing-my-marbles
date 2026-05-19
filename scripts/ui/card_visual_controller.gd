@@ -11,20 +11,30 @@ const HOLE_HEIGHT: int = 110
 static var _frame_cache: Dictionary = {}
 static var _back_texture: ImageTexture = null
 
-@onready var mana_label: Label = %ManaCostLabel
-@onready var name_label: Label = %CardNameLabel
-@onready var desc_label: Label = %CardDescLabel
-@onready var sprite_rect: TextureRect = %SpriteRect
-@onready var frame_rect: TextureRect = %FrameRect
+var mana_label: Label = null
+var name_label: Label = null
+var desc_label: Label = null
+var sprite_rect: TextureRect = null
+var frame_rect: TextureRect = null
 
 
 func apply_card_data(card_data: CardData) -> void:
+	_ensure_nodes()
 	frame_rect.texture = _get_frame(card_data.type)
 	sprite_rect.texture = _make_sprite(card_data.type)
 	mana_label.text = str(card_data.mana_cost)
 	name_label.text = card_data.card_name
 	desc_label.text = card_data.description if not card_data.description.is_empty() else ""
 	_style_labels()
+
+
+func _ensure_nodes() -> void:
+	if frame_rect == null:
+		frame_rect = %FrameRect
+		sprite_rect = %SpriteRect
+		mana_label = %ManaCostLabel
+		name_label = %CardNameLabel
+		desc_label = %CardDescLabel
 
 
 func apply_back(back_rect: TextureRect) -> void:

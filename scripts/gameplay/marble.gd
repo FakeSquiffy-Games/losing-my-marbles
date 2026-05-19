@@ -7,7 +7,7 @@ var marble_data: MarbleData = null
 var owner_player_id: int = 0
 var _color: Color = Color.WHITE
 
-@onready var _sprite: Sprite2D = %Sprite
+var _sprite: Sprite2D = null
 
 
 static func make_circle_texture(color: Color) -> ImageTexture:
@@ -53,6 +53,8 @@ func setup(data: MarbleData, player_id: int, color: Color) -> void:
 				tex = loaded
 	if not tex:
 		tex = make_circle_texture(_color)
+	if not _sprite:
+		_sprite = get_node("%Sprite") as Sprite2D
 	_sprite.texture = tex
 
 

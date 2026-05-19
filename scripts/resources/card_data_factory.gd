@@ -21,6 +21,8 @@ func create_card(card_name: String, target: CardContainer) -> Card:
 
 func create_card_from_data(card_data: CardData, target: CardContainer) -> Card:
 	var card: Card = CARD_SCENE.instantiate() as Card
+	card.front_face_texture = card.get_node("FrontFace/FrameRect") as TextureRect
+	card.back_face_texture = card.get_node("BackFace/BackRect") as TextureRect
 	card.card_size = card_size
 
 	var controller: CardVisualController = card.get_node("FrontFace") as CardVisualController
