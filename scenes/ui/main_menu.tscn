@@ -1,6 +1,26 @@
 [gd_scene format=3 uid="uid://1hf2xat8ikhk"]
 
 [ext_resource type="Script" uid="uid://bn1eapls0tddv" path="res://scripts/ui/main_menu.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://byc2e8ddjp0hl" path="res://assets/background/0.png" id="2_877pj"]
+[ext_resource type="Texture2D" uid="uid://b4n7fr3wr1pyl" path="res://assets/background/1.png" id="3_ayp64"]
+[ext_resource type="Texture2D" uid="uid://ve4gvqv2001i" path="res://assets/background/2.png" id="4_y2j7i"]
+[ext_resource type="Texture2D" uid="uid://c1j1ixc2jidv3" path="res://assets/background/3.png" id="5_y1h5l"]
+[ext_resource type="Texture2D" uid="uid://bj4hfqxf2xpti" path="res://assets/background/4.png" id="6_pw24t"]
+[ext_resource type="Texture2D" uid="uid://ckpjil1d0frob" path="res://assets/background/5.png" id="7_5dct7"]
+[ext_resource type="Texture2D" uid="uid://br44jowj6eub" path="res://assets/background/6.png" id="8_qilvv"]
+[ext_resource type="Texture2D" uid="uid://cqo3wj8ss0dam" path="res://assets/background/7.png" id="9_jbte4"]
+[ext_resource type="Texture2D" uid="uid://c3qbgb0uyp4sy" path="res://assets/background/8.png" id="10_e0hcc"]
+[ext_resource type="Texture2D" uid="uid://c304t85kiuiwf" path="res://assets/background/9.png" id="11_qch7b"]
+[ext_resource type="Texture2D" uid="uid://dtnyf0hkrw7cm" path="res://assets/background/10.png" id="12_4ovp2"]
+[ext_resource type="Texture2D" uid="uid://bfa3jx2y8rkds" path="res://assets/background/11.png" id="13_1mexh"]
+[ext_resource type="Texture2D" uid="uid://deylahyqbwq3k" path="res://assets/background/12.png" id="14_6ud2m"]
+[ext_resource type="AudioStream" uid="uid://btaecxhj8ijk5" path="res://assets/audio/JumpPack - FreeMusicLoops - v1.0/Toilet Gremlins.ogg" id="15_ayp64"]
+[ext_resource type="FontFile" uid="uid://dllly6avq8lia" path="res://assets/fonts/pirkkala.ttf" id="15_qqxfm"]
+[ext_resource type="Texture2D" uid="uid://bt54vsisph5c7" path="res://assets/background/18.png" id="15_y2j7i"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_ktljq"]
+font = ExtResource("15_qqxfm")
+font_size = 64
 
 [node name="MainMenu" type="Control" unique_id=746825739]
 layout_mode = 3
@@ -11,46 +31,141 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_script")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=642455398]
+[node name="Background" type="Node2D" parent="." unique_id=61063641]
+
+[node name="Sprite2D" type="Sprite2D" parent="Background" unique_id=675181737]
+position = Vector2(576, 324)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("2_877pj")
+
+[node name="Sprite2D2" type="Sprite2D" parent="Background" unique_id=115281367]
+position = Vector2(576, 324)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("3_ayp64")
+
+[node name="Sprite2D3" type="Sprite2D" parent="Background" unique_id=1319644039]
+position = Vector2(576, 324)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("4_y2j7i")
+
+[node name="Sprite2D4" type="Sprite2D" parent="Background" unique_id=579561466]
+position = Vector2(576, 324)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("5_y1h5l")
+
+[node name="Sprite2D5" type="Sprite2D" parent="Background" unique_id=1243304404]
+position = Vector2(576, 324)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("6_pw24t")
+
+[node name="Sprite2D6" type="Sprite2D" parent="Background" unique_id=202168174]
+position = Vector2(576, 324)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("7_5dct7")
+
+[node name="Sprite2D7" type="Sprite2D" parent="Background" unique_id=362654215]
+position = Vector2(576, 324)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("8_qilvv")
+
+[node name="Sprite2D8" type="Sprite2D" parent="Background" unique_id=1136641753]
+position = Vector2(576, 324)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("9_jbte4")
+
+[node name="Sprite2D9" type="Sprite2D" parent="Background" unique_id=776817321]
+position = Vector2(576, 324)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("10_e0hcc")
+
+[node name="Sprite2D10" type="Sprite2D" parent="Background" unique_id=991827548]
+position = Vector2(576, 324)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("11_qch7b")
+
+[node name="Sprite2D11" type="Sprite2D" parent="Background" unique_id=1553009446]
+position = Vector2(576, 324)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("12_4ovp2")
+
+[node name="Sprite2D12" type="Sprite2D" parent="Background" unique_id=1329248525]
+position = Vector2(576, 324)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("13_1mexh")
+
+[node name="Sprite2D13" type="Sprite2D" parent="Background" unique_id=1301498438]
+position = Vector2(576, 324)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("14_6ud2m")
+
+[node name="Sprite2D14" type="Sprite2D" parent="Background" unique_id=1964522665]
+position = Vector2(578, 176)
+scale = Vector2(0.55500007, 0.5666667)
+texture = ExtResource("15_y2j7i")
+
+[node name="BackgroundMusic" type="AudioStreamPlayer" parent="." unique_id=993554210]
+stream = ExtResource("15_ayp64")
+
+[node name="VBoxContainer" type="Control" parent="." unique_id=733844391]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -150.0
-offset_top = -120.0
-offset_right = 150.0
-offset_bottom = 120.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Title" type="Label" parent="VBoxContainer" unique_id=1968033754]
-layout_mode = 2
+visible = false
+layout_mode = 0
+offset_left = 2.0
+offset_top = 97.0
+offset_right = 1154.0
+offset_bottom = 161.0
 theme_override_font_sizes/font_size = 32
 text = "Losing My Marbles!"
+label_settings = SubResource("LabelSettings_ktljq")
 horizontal_alignment = 1
-
-[node name="Spacer1" type="Control" parent="VBoxContainer" unique_id=911535849]
-custom_minimum_size = Vector2(0, 20)
-layout_mode = 2
 
 [node name="OnlineButton" type="Button" parent="VBoxContainer" unique_id=1701432899]
 unique_name_in_owner = true
-layout_mode = 2
-text = "Play Online"
+layout_mode = 0
+offset_left = 256.0
+offset_top = 432.0
+offset_right = 366.0
+offset_bottom = 504.0
+theme_override_colors/font_color = Color(0.9411765, 0.4392157, 0.03137255, 1)
+theme_override_colors/font_hover_color = Color(0.9411765, 0.23529412, 0.03137255, 1)
+theme_override_fonts/font = ExtResource("15_qqxfm")
+theme_override_font_sizes/font_size = 64
+text = "LAN"
+flat = true
 
 [node name="OfflineButton" type="Button" parent="VBoxContainer" unique_id=1781888267]
 unique_name_in_owner = true
-layout_mode = 2
-text = "Play Offline"
-
-[node name="DeckBuilderButton" type="Button" parent="VBoxContainer" unique_id=1491080569]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Deck Builder"
+layout_mode = 0
+offset_left = 380.0
+offset_top = 458.0
+offset_right = 776.0
+offset_bottom = 586.0
+theme_override_colors/font_color = Color(0.9411765, 0.4392157, 0.03137255, 1)
+theme_override_colors/font_hover_color = Color(0.9411765, 0.23529412, 0.03137255, 1)
+theme_override_fonts/font = ExtResource("15_qqxfm")
+theme_override_font_sizes/font_size = 40
+text = "Pass
+and
+Play"
+flat = true
 
 [node name="QuitButton" type="Button" parent="VBoxContainer" unique_id=331604129]
 unique_name_in_owner = true
-layout_mode = 2
+layout_mode = 0
+offset_left = 778.0
+offset_top = 425.0
+offset_right = 898.0
+offset_bottom = 497.0
+theme_override_colors/font_color = Color(0.9411765, 0.4392157, 0.03137255, 1)
+theme_override_colors/font_hover_color = Color(0.9411765, 0.23529412, 0.03137255, 1)
+theme_override_fonts/font = ExtResource("15_qqxfm")
+theme_override_font_sizes/font_size = 64
 text = "Quit"
+flat = true

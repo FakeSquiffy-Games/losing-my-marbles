@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://buobq5t48wols"
+path="res://.godot/imported/Follow the Flow.ogg-5e67f805d5e9797d0fb4c774b773712a.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/audio/JumpPack - FreeMusicLoops - v1.0/Follow the Flow.ogg"
+dest_files=["res://.godot/imported/Follow the Flow.ogg-5e67f805d5e9797d0fb4c774b773712a.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://d0tmu6xgvyx7a"
+path="res://.godot/imported/Cave Rave.ogg-d94182daaf799a22a639205feab2ad4a.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/audio/JumpPack - FreeMusicLoops - v1.0/Cave Rave.ogg"
+dest_files=["res://.godot/imported/Cave Rave.ogg-d94182daaf799a22a639205feab2ad4a.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

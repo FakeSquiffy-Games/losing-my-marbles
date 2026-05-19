@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://btu7yj6454t25"
+path="res://.godot/imported/Neon Trail.ogg-91f3d1da8fc334f69b667bdbb0727e94.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/audio/JumpPack - FreeMusicLoops - v1.0/Neon Trail.ogg"
+dest_files=["res://.godot/imported/Neon Trail.ogg-91f3d1da8fc334f69b667bdbb0727e94.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4
