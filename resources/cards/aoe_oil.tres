@@ -6,14 +6,14 @@
 [sub_resource type="Resource" id="efx_1"]
 script = ExtResource("2_efx")
 effect_id = "apply_aoe"
-value = 0.8
+value = -0.4
 target = 6
 trigger = 0
 
 [resource]
 script = ExtResource("1_card")
-card_name = "Elemar's Glue"
+card_name = "Oil"
 type = 4
 mana_cost = 2
 effects = Array[ExtResource("2_efx")]([SubResource("efx_1")])
-description = "A spill of industrial-strength glue. Marbles slow to a crawl for 2 turns."
+description = "A slick oil spill. Marbles slide with greatly reduced friction for 2 turns."

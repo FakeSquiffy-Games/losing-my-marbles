@@ -13,9 +13,9 @@ weight = 2.0
 
 [resource]
 script = ExtResource("1_marble")
-card_name = "Marble Heavy"
+card_name = "Chrome Ball"
 type = 0
 mana_cost = 0
 effects = []
-description = "Dense marble. Hard to knock out, but slow on the field."
+description = "Solid chrome ball bearing. Hard to knock out, but slow on the field."
 physics = SubResource("phys_1")
